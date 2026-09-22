@@ -1,0 +1,23 @@
+{
+  "schema_version": "sr_plugin_contract_source_v1",
+  "contract_version": "2026-07-27",
+  "source_repository_commit": "02c3aafc34f1df9151e5571729b9a91e791adcf8",
+  "source_repository_dirty": false,
+  "source_contract_inputs_dirty": false,
+  "source_contract_sha256": "786b7f0f29eb9f6c4becbd15d5fb299ce77ce46bff67f63f43044c7d95455dca",
+  "compiled_contract_sha256": "2a84b11037d29fc54e38dce3a159cb0729588af2ade787b929697c6f34d75339",
+  "canonical_artifacts": {
+    "apps/sr-mcp/SITE-API-CONTRACT.md": "25d68b888fb1fa413a39d8ea0e0e9411823e58fa398169a02a20b8ddb662c67e",
+    "apps/sr-mcp/PRODUCTION-RUNBOOK.md": "1c8467f17390cb04c1018bf0ff7a9cbc4443e97e252323675d380924edc90be9",
+    "apps/sr-mcp/RUNTIME-API-CONTRACT.md": "0e4b5d171715923e5126938de6855ed51b48fcca254d644de1de094992f6af4a",
+    "apps/sr-mcp/GENERATED-PLUGIN-DATA-CONTRACT.json": "3732b1bebe709dc7f68116edaed0767471728ee380d0621179c7f970c1f97c4c",
+    "apps/sr-mcp/GENERATED-PLUGIN-ACTION-REFERENCE.md": "753dd031561778ae07d7aa9a5a705be528a04b49fda631f1489141ae79762e59"
+  },
+  "generated": {
+    "skills/sr-actions/references/action-operations.md": "bbbe1f24146bc4e90cc7b604bf61581c726ed76d6354bc822213bf6a9e6ac49b",
+    "skills/sr-actions/references/action-operation-contract.json": "58f356723bfe223c90afa45688e245380c7e87f2b219507e5954f95e93eee54f",
+    "skills/sr-data/references/mcp-data-contract.json": "3732b1bebe709dc7f68116edaed0767471728ee380d0621179c7f970c1f97c4c",
+    "skills/sr-data/references/mcp-tool-schemas.json": "12fb90ee32c27db67dcf9cac0819faa59e76e5feda4183e299acb53c0ffee065",
+    "skills/sr-data/references/query-profiles.md": "0535872015dee8fed17502c39aa15d404c14629177ebef6134a8129dc92d5de0"
+  }
+}

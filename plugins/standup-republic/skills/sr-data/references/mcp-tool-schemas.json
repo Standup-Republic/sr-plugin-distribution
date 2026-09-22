@@ -1,0 +1,3029 @@
+{
+  "contract_version": "2026-07-27",
+  "public_tool_count": 6,
+  "tools": {
+    "sr_entity_resolve": {
+      "metadata": {
+        "title": "Resolve Standup Republic entities",
+        "description": "Resolve an ambiguous human name, natural-language identifier, or supported provider identifier into stable SR references. For a dated performance, resolve an event; use show for its reusable template. Supply the narrowest plausible entity_types plus optional city/date/provider hints; full date_hint values are RFC3339. Product resolution is connected for event, location, profile, and show; internal Coordination resolution is connected for artifact, active plugin_user, message, project, task, and legacy attachment records. Other requested-only types return resolver_entity_type_not_connected with connected_entity_types. Use sr_entity_get when a canonical ref is already known; slot is a bookable lineup time window and is normally queried with available_slots_v1. Read-only; do not probe unsupported types.",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        }
+      },
+      "input_schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000,
+            "description": "Human text, name, message excerpt, phone number, email, or provider identifier to resolve into canonical SR references."
+          },
+          "entity_types": {
+            "minItems": 1,
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "activity_event",
+                "application",
+                "artifact",
+                "attachment",
+                "booking",
+                "coordination_event",
+                "event",
+                "invoice",
+                "link",
+                "location",
+                "mcp_tool_call",
+                "meeting",
+                "message",
+                "operation_run",
+                "organization",
+                "payout_case",
+                "person",
+                "plugin_user",
+                "priority_item",
+                "project",
+                "profile",
+                "show",
+                "signal",
+                "slot",
+                "subscription",
+                "task",
+                "task_proposal",
+                "ticket_class"
+              ],
+              "description": "Canonical SR or internal Coordination record type. Product values include application, booking, event, invoice, location, organization, payout_case, profile, show, slot, subscription, and ticket_class. Internal values include artifact, plugin_user, meeting, message, priority_item, project, archived task, task_proposal, attachment (legacy transfer alias), signal, link, coordination_event, activity_event, mcp_tool_call, and operation_run. Use priority_item for the Admin board; archived task is read-only history and returns coordination_task_retired. Use artifact for private immutable R2 content or a verified Google Drive link. Use slot for one bookable lineup time window. Use event for one scheduled occurrence with a date, time, and a venue. Use show only for the reusable show format/template across occurrences; a user may colloquially say 'Show' while referring to an event."
+            },
+            "description": "Schema-valid planner targets include profile, show, slot and the other listed Product records plus internal activity_event, artifact, attachment, coordination_event, link, message, plugin_user, signal, and task. Use event for a dated occurrence and show only for the reusable series/template. Product resolution is connected for event, location, profile, and show; Coordination resolution is connected for artifact, active plugin_user, message, project, task, and legacy attachment records. Requesting only another type returns resolver_entity_type_not_connected. Use sr_entity_get when a canonical ref is already known. Use artifact for private R2 content or verified Google Drive links."
+          },
+          "city": {
+            "description": "Optional city hint used to rank otherwise similar candidates.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "date_hint": {
+            "description": "Optional date/time hint as a full RFC 3339 timestamp including time and offset. Example: 2026-07-30T20:00:00+02:00. Never pass a date-only value such as 2026-07-30.",
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "provider": {
+            "description": "Optional provider namespace when query contains an identifier from that provider.",
+            "type": "string",
+            "enum": [
+              "eventbrite",
+              "eventim",
+              "paypal",
+              "stripe"
+            ]
+          },
+          "limit": {
+            "default": 10,
+            "description": "Maximum number of ranked candidates to return; default 10.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": [
+          "query",
+          "entity_types",
+          "limit"
+        ],
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "2026-07-27"
+          },
+          "audit_ref": {
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 256,
+            "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "description": "Full RFC 3339 timestamp with time and UTC offset, for example 2026-07-30T20:00:00+02:00 or 2026-07-30T18:00:00Z. Date-only values such as 2026-07-30 are invalid."
+          },
+          "coverage": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "complete",
+                  "partial",
+                  "unknown"
+                ]
+              },
+              "sources": {
+                "default": [],
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              },
+              "missing": {
+                "default": [],
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              }
+            },
+            "required": [
+              "status",
+              "sources",
+              "missing"
+            ],
+            "additionalProperties": false
+          },
+          "warnings": {
+            "default": [],
+            "maxItems": 32,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 96
+                },
+                "message": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                },
+                "details": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "resolved",
+              "ambiguous",
+              "not_found",
+              "invalid",
+              "permission_denied",
+              "failed"
+            ],
+            "description": "resolved only when one candidate is safe to select; ambiguous requires clarification; not_found means no candidate matched. invalid, permission_denied, and failed are typed non-success results with machine-readable error evidence."
+          },
+          "candidates": {
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "entity_ref": {
+                  "type": "string",
+                  "minLength": 7,
+                  "maxLength": 256,
+                  "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$",
+                  "description": "Stable opaque reference for the candidate's canonical SR record."
+                },
+                "entity_type": {
+                  "type": "string",
+                  "enum": [
+                    "activity_event",
+                    "application",
+                    "artifact",
+                    "attachment",
+                    "booking",
+                    "coordination_event",
+                    "event",
+                    "invoice",
+                    "link",
+                    "location",
+                    "mcp_tool_call",
+                    "meeting",
+                    "message",
+                    "operation_run",
+                    "organization",
+                    "payout_case",
+                    "person",
+                    "plugin_user",
+                    "priority_item",
+                    "project",
+                    "profile",
+                    "show",
+                    "signal",
+                    "slot",
+                    "subscription",
+                    "task",
+                    "task_proposal",
+                    "ticket_class"
+                  ],
+                  "description": "Canonical type of this candidate; event means one dated occurrence, show means its reusable format/template."
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500,
+                  "description": "Human-readable candidate label containing the most useful distinguishing facts."
+                },
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "Resolver confidence from 0 to 1; not an authorization signal."
+                },
+                "reasons": {
+                  "maxItems": 12,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "description": "Compact reasons why this candidate matched the request."
+                },
+                "summary": {
+                  "default": {},
+                  "description": "Self-contained distinguishing facts. Event candidates should include the show title, event date/time, venue, and city when available so the match can be explained without a follow-up read.",
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {
+                    "$ref": "#/$defs/__schema0"
+                  }
+                }
+              },
+              "required": [
+                "entity_ref",
+                "entity_type",
+                "label",
+                "confidence",
+                "reasons",
+                "summary"
+              ],
+              "additionalProperties": false
+            },
+            "description": "Ranked canonical candidates with enough facts to distinguish them."
+          },
+          "selected_ref": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 7,
+                "maxLength": 256,
+                "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Selected stable reference when status is resolved; otherwise null."
+          },
+          "error_code": {
+            "description": "Stable machine-readable code for a typed non-success result.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "message": {
+            "description": "Safe human-readable explanation of the typed non-success result.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "error": {
+            "description": "Structured typed-error evidence; when present, use error.result_status for trace semantics and error.error_code for branching.",
+            "type": "object",
+            "properties": {
+              "error_code": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "result_status": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "retryable": {
+                "type": "boolean"
+              },
+              "details": {
+                "description": "Safe machine-readable diagnostics such as missing_fields, unexpected_fields, expected_shapes, or reconciliation instructions. Never contains secrets or raw Product rows.",
+                "$ref": "#/$defs/__schema0"
+              }
+            },
+            "required": [
+              "error_code",
+              "result_status",
+              "message",
+              "retryable"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "schema_version",
+          "audit_ref",
+          "observed_at",
+          "coverage",
+          "warnings",
+          "status",
+          "candidates",
+          "selected_ref"
+        ],
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "sr_entity_get": {
+      "metadata": {
+        "title": "Get one Standup Republic entity",
+        "description": "Read answer-ready sections of exactly one stable SR entity reference. Choose sections from the entity-type registry; source_mode defaults to canonical, compare is for bounded canonical/provider comparison, and provider_live is Admin-only where connected. subject_ref/resource_ref add an already-resolved relationship context and never replace entity_ref. The result reports source, freshness, coverage, warnings, and a typed allowed-section error for one corrected retry. Discover current entity sections via sr_runtime_health with components:['mcp'], catalog:{kind:'entity',key:'<entity_type>'}. Use only canonical sections for the entity type: activity_event: overview, actor, operation, result, correlation, freshness, coverage; application: overview, status, booking, event, schedule, freshness, coverage; artifact: overview, current_version, google_drive, versions, links, audience, retention, provenance, download, available_actions, freshness, coverage; attachment: overview, availability, message, task, download, freshness, coverage; booking: overview, status, booking, event, schedule, payout, freshness, coverage; coordination_event: overview, actor, operation, target, result, correlation, freshness, coverage; event: overview, status, event, schedule, location, booking, bookings, applications, lineup, ticketing, prices, capacity, sales_summary, configuration, provider, provider_details, provider_links, finance_summary, finance, invoices, operations, status_evidence, canonical_timeline, history, freshness, coverage; invoice: overview, status, amount, event, freshness, coverage; link: overview, source, target, status, freshness, coverage; location: overview, status, schedule, events, freshness, coverage; mcp_tool_call: overview, status, arguments, result, correlation, freshness, coverage; message: overview, sender, recipient, task, attachments, state, available_actions, freshness, coverage; meeting: overview, participants, summary, auto_created_tasks, auto_updated_tasks, manually_linked_tasks, review_proposals, signals, links, report, transcript, provenance, freshness, coverage; operation_run: status, result, receipt, post_check, freshness, coverage; organization: overview, status, product_access, plugin_access, freshness, coverage; payout_case: overview, status, amount, event, freshness, coverage, status_evidence, canonical_timeline, history; person: detail, overview, role, status, current_tasks, important_projects, memberships, relationships, activity, agent_runs, receipts, notifications, provenance, freshness, coverage; plugin_user: overview, role, status, coordination_capabilities, freshness, coverage; priority_item: overview, freshness, coverage; project: detail, overview, members, team, tasks, links, context_links, updates, receipts, available_actions, freshness, coverage; profile: overview, status, booking, product_access, plugin_access, invoices, freshness, coverage; show: overview, status, schedule, events, location, ticketing, sales_summary, product_access, provider_links, freshness, coverage; signal: overview, status, source, links, freshness, coverage; slot: overview, status, availability, booking, event, location, schedule, payout, freshness, coverage; subscription: overview, status, amount, freshness, coverage; task: detail, overview, project, requester, assignee, thread, provenance, linked_context, context_links, references, message, attachments, comments, updates, agent_runs, receipts, notifications, timeline, state, available_actions, freshness, coverage; task_proposal: overview, requester, assignee, provenance, decision, resulting_task, available_actions, freshness, coverage; ticket_class: overview, status, identity, prices, capacity, ticketing, provider, freshness, coverage. Operation-run sections: status, receipt, post_check; result, freshness, and coverage are also available. Common event/show sections: overview, schedule, location, ticketing, prices; consult the entity-specific list above for the rest. For payout_case prefer overview, status, amount, event, freshness, and coverage; status_evidence, canonical_timeline, and history remain compatibility sections. The event, bookings, finance, and operations event sections remain explicit compatibility sections. Unsupported sections return entity_section_not_supported with the exact allowed list; do not probe aliases.",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true
+        }
+      },
+      "input_schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "entity_ref": {
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 256,
+            "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+          },
+          "sections": {
+            "minItems": 1,
+            "maxItems": 24,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 96,
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "description": "Use only canonical sections for the entity type: activity_event: overview, actor, operation, result, correlation, freshness, coverage; application: overview, status, booking, event, schedule, freshness, coverage; artifact: overview, current_version, google_drive, versions, links, audience, retention, provenance, download, available_actions, freshness, coverage; attachment: overview, availability, message, task, download, freshness, coverage; booking: overview, status, booking, event, schedule, payout, freshness, coverage; coordination_event: overview, actor, operation, target, result, correlation, freshness, coverage; event: overview, status, event, schedule, location, booking, bookings, applications, lineup, ticketing, prices, capacity, sales_summary, configuration, provider, provider_details, provider_links, finance_summary, finance, invoices, operations, status_evidence, canonical_timeline, history, freshness, coverage; invoice: overview, status, amount, event, freshness, coverage; link: overview, source, target, status, freshness, coverage; location: overview, status, schedule, events, freshness, coverage; mcp_tool_call: overview, status, arguments, result, correlation, freshness, coverage; message: overview, sender, recipient, task, attachments, state, available_actions, freshness, coverage; meeting: overview, participants, summary, auto_created_tasks, auto_updated_tasks, manually_linked_tasks, review_proposals, signals, links, report, transcript, provenance, freshness, coverage; operation_run: status, result, receipt, post_check, freshness, coverage; organization: overview, status, product_access, plugin_access, freshness, coverage; payout_case: overview, status, amount, event, freshness, coverage, status_evidence, canonical_timeline, history; person: detail, overview, role, status, current_tasks, important_projects, memberships, relationships, activity, agent_runs, receipts, notifications, provenance, freshness, coverage; plugin_user: overview, role, status, coordination_capabilities, freshness, coverage; priority_item: overview, freshness, coverage; project: detail, overview, members, team, tasks, links, context_links, updates, receipts, available_actions, freshness, coverage; profile: overview, status, booking, product_access, plugin_access, invoices, freshness, coverage; show: overview, status, schedule, events, location, ticketing, sales_summary, product_access, provider_links, freshness, coverage; signal: overview, status, source, links, freshness, coverage; slot: overview, status, availability, booking, event, location, schedule, payout, freshness, coverage; subscription: overview, status, amount, freshness, coverage; task: detail, overview, project, requester, assignee, thread, provenance, linked_context, context_links, references, message, attachments, comments, updates, agent_runs, receipts, notifications, timeline, state, available_actions, freshness, coverage; task_proposal: overview, requester, assignee, provenance, decision, resulting_task, available_actions, freshness, coverage; ticket_class: overview, status, identity, prices, capacity, ticketing, provider, freshness, coverage. Operation-run sections: status, receipt, post_check; result, freshness, and coverage are also available. Common event/show sections: overview, schedule, location, ticketing, prices; consult the entity-specific list above for the rest. For payout_case prefer overview, status, amount, event, freshness, and coverage; status_evidence, canonical_timeline, and history remain compatibility sections. The event, bookings, finance, and operations event sections remain explicit compatibility sections. Unsupported sections return entity_section_not_supported with the exact allowed list; do not probe aliases."
+          },
+          "subject_ref": {
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 256,
+            "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+          },
+          "resource_ref": {
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 256,
+            "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+          },
+          "source_mode": {
+            "default": "canonical",
+            "type": "string",
+            "enum": [
+              "canonical",
+              "compare",
+              "provider_live"
+            ]
+          },
+          "detail_level": {
+            "default": "standard",
+            "type": "string",
+            "enum": [
+              "summary",
+              "standard",
+              "detailed"
+            ]
+          },
+          "context_links_page": {
+            "description": "Optional deterministic page for the context_links section on Project or Task Entity Get. The returned section carries next_cursor for the next Entity Get call.",
+            "type": "object",
+            "properties": {
+              "limit": {
+                "default": 25,
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              "cursor": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              }
+            },
+            "required": [
+              "limit"
+            ],
+            "additionalProperties": false
+          },
+          "comments_page": {
+            "description": "Compatibility input for paginating Task comments. New detail consumers should use detail_pages.comments; both return the canonical detail page envelope.",
+            "type": "object",
+            "properties": {
+              "limit": {
+                "default": 25,
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              "cursor": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              }
+            },
+            "required": [
+              "limit"
+            ],
+            "additionalProperties": false
+          },
+          "detail_pages": {
+            "description": "Independent bounded cursors for canonical ProjectDetail/TaskDetail list sections, including the task-derived Project team. Applies only when sections includes detail; each returned list uses the same deterministic page envelope.",
+            "type": "object",
+            "properties": {
+              "comments": {
+                "type": "object",
+                "properties": {
+                  "limit": {
+                    "default": 25,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "cursor": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 65536
+                  }
+                },
+                "required": [
+                  "limit"
+                ],
+                "additionalProperties": false
+              },
+              "context_links": {
+                "type": "object",
+                "properties": {
+                  "limit": {
+                    "default": 25,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "cursor": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 65536
+                  }
+                },
+                "required": [
+                  "limit"
+                ],
+                "additionalProperties": false
+              },
+              "agent_events": {
+                "type": "object",
+                "properties": {
+                  "limit": {
+                    "default": 25,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "cursor": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 65536
+                  }
+                },
+                "required": [
+                  "limit"
+                ],
+                "additionalProperties": false
+              },
+              "team": {
+                "type": "object",
+                "properties": {
+                  "limit": {
+                    "default": 25,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "cursor": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 65536
+                  }
+                },
+                "required": [
+                  "limit"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "employee_pages": {
+            "description": "Independent bounded keyset pages for EmployeeDetail current work, memberships, and activity. Applies only to sr:person refs with the detail section.",
+            "type": "object",
+            "properties": {
+              "current_tasks": {
+                "type": "object",
+                "properties": {
+                  "limit": {
+                    "default": 25,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "cursor": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  }
+                },
+                "required": [
+                  "limit"
+                ],
+                "additionalProperties": false
+              },
+              "important_projects": {
+                "type": "object",
+                "properties": {
+                  "limit": {
+                    "default": 25,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "cursor": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  }
+                },
+                "required": [
+                  "limit"
+                ],
+                "additionalProperties": false
+              },
+              "memberships": {
+                "type": "object",
+                "properties": {
+                  "limit": {
+                    "default": 25,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "cursor": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  }
+                },
+                "required": [
+                  "limit"
+                ],
+                "additionalProperties": false
+              },
+              "activity": {
+                "type": "object",
+                "properties": {
+                  "limit": {
+                    "default": 25,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "cursor": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  }
+                },
+                "required": [
+                  "limit"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "entity_ref",
+          "sections",
+          "source_mode",
+          "detail_level"
+        ],
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "2026-07-27"
+              },
+              {
+                "type": "string",
+                "const": "2026-08-02"
+              },
+              {
+                "type": "string",
+                "const": "2026-08-02"
+              }
+            ]
+          },
+          "audit_ref": {
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 256,
+            "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "description": "Full RFC 3339 timestamp with time and UTC offset, for example 2026-07-30T20:00:00+02:00 or 2026-07-30T18:00:00Z. Date-only values such as 2026-07-30 are invalid."
+          },
+          "coverage": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "complete",
+                  "partial",
+                  "unknown"
+                ]
+              },
+              "sources": {
+                "default": [],
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              },
+              "missing": {
+                "default": [],
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              }
+            },
+            "required": [
+              "status",
+              "sources",
+              "missing"
+            ],
+            "additionalProperties": false
+          },
+          "warnings": {
+            "default": [],
+            "maxItems": 32,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 96
+                },
+                "message": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                },
+                "details": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "found",
+              "not_found",
+              "invalid",
+              "permission_denied",
+              "failed"
+            ]
+          },
+          "entity_ref": {
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 256,
+            "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+          },
+          "entity_type": {
+            "type": "string",
+            "enum": [
+              "activity_event",
+              "application",
+              "artifact",
+              "attachment",
+              "booking",
+              "coordination_event",
+              "event",
+              "invoice",
+              "link",
+              "location",
+              "mcp_tool_call",
+              "meeting",
+              "message",
+              "operation_run",
+              "organization",
+              "payout_case",
+              "person",
+              "plugin_user",
+              "priority_item",
+              "project",
+              "profile",
+              "show",
+              "signal",
+              "slot",
+              "subscription",
+              "task",
+              "task_proposal",
+              "ticket_class"
+            ],
+            "description": "Canonical SR or internal Coordination record type. Product values include application, booking, event, invoice, location, organization, payout_case, profile, show, slot, subscription, and ticket_class. Internal values include artifact, plugin_user, meeting, message, priority_item, project, archived task, task_proposal, attachment (legacy transfer alias), signal, link, coordination_event, activity_event, mcp_tool_call, and operation_run. Use priority_item for the Admin board; archived task is read-only history and returns coordination_task_retired. Use artifact for private immutable R2 content or a verified Google Drive link. Use slot for one bookable lineup time window. Use event for one scheduled occurrence with a date, time, and a venue. Use show only for the reusable show format/template across occurrences; a user may colloquially say 'Show' while referring to an event."
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_mode": {
+            "type": "string",
+            "enum": [
+              "canonical",
+              "compare",
+              "provider_live"
+            ]
+          },
+          "sections": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/__schema0"
+            }
+          },
+          "error_code": {
+            "description": "Stable machine-readable code for a typed non-success result.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "message": {
+            "description": "Safe human-readable explanation of the typed non-success result.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "error": {
+            "description": "Structured typed-error evidence; when present, use error.result_status for trace semantics and error.error_code for branching.",
+            "type": "object",
+            "properties": {
+              "error_code": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "result_status": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "retryable": {
+                "type": "boolean"
+              },
+              "details": {
+                "description": "Safe machine-readable diagnostics such as missing_fields, unexpected_fields, expected_shapes, or reconciliation instructions. Never contains secrets or raw Product rows.",
+                "$ref": "#/$defs/__schema0"
+              }
+            },
+            "required": [
+              "error_code",
+              "result_status",
+              "message",
+              "retryable"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "schema_version",
+          "audit_ref",
+          "observed_at",
+          "coverage",
+          "warnings",
+          "status",
+          "entity_ref",
+          "entity_type",
+          "label",
+          "source_mode",
+          "sections"
+        ],
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "sr_entity_query": {
+      "metadata": {
+        "title": "Query Standup Republic entities",
+        "description": "Run one bounded, versioned query profile for lists, aggregates, timelines, or reports. Read the selected profile's availability, role, scope, filter, select, grouping, and sort contract before calling; do not try guessed profiles or filter probes. Omit select when the profile publishes an answer-ready default. Use at most one supported sort, pass canonical scope_ref when available, and reuse next_cursor unchanged for the same query. Additional safe per-item Gets are usually unnecessary after a complete projection. blocked/unsupported profiles are discoverable but not callable; typed errors state the exact retry contract. Discover current profiles via sr_runtime_health with components:['mcp'], catalog:{kind:'overview'}; fetch exact filters and projection with catalog:{kind:'query',key:'<profile>'}.",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true
+        }
+      },
+      "input_schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "entity_type": {
+            "type": "string",
+            "enum": [
+              "activity_event",
+              "application",
+              "artifact",
+              "attachment",
+              "booking",
+              "coordination_event",
+              "event",
+              "invoice",
+              "link",
+              "location",
+              "mcp_tool_call",
+              "meeting",
+              "message",
+              "operation_run",
+              "organization",
+              "payout_case",
+              "person",
+              "plugin_user",
+              "priority_item",
+              "project",
+              "profile",
+              "show",
+              "signal",
+              "slot",
+              "subscription",
+              "task",
+              "task_proposal",
+              "ticket_class"
+            ],
+            "description": "Canonical SR or internal Coordination record type. Product values include application, booking, event, invoice, location, organization, payout_case, profile, show, slot, subscription, and ticket_class. Internal values include artifact, plugin_user, meeting, message, priority_item, project, archived task, task_proposal, attachment (legacy transfer alias), signal, link, coordination_event, activity_event, mcp_tool_call, and operation_run. Use priority_item for the Admin board; archived task is read-only history and returns coordination_task_retired. Use artifact for private immutable R2 content or a verified Google Drive link. Use slot for one bookable lineup time window. Use event for one scheduled occurrence with a date, time, and a venue. Use show only for the reusable show format/template across occurrences; a user may colloquially say 'Show' while referring to an event."
+          },
+          "profile": {
+            "type": "string",
+            "enum": [
+              "admin_session_status_v1",
+              "available_slots_v1",
+              "bank_accounting_reconciliation_v1",
+              "bookings_v1",
+              "city_ticket_sales_v1",
+              "comedian_booking_load_v1",
+              "event_finance_reconciliation_v1",
+              "event_inventory_v1",
+              "event_sales_v1",
+              "finance_export_scope_v1",
+              "internal_activity_feed_v1",
+              "internal_artifacts_v1",
+              "internal_coordination_events_v1",
+              "internal_communications_v1",
+              "internal_conversations_v1",
+              "internal_employee_directory_v1",
+              "internal_inbox_v1",
+              "internal_links_v1",
+              "internal_meetings_v1",
+              "internal_messages_sent_v1",
+              "internal_notifications_v1",
+              "internal_priority_board_v1",
+              "internal_projects_v1",
+              "internal_signals_v1",
+              "internal_task_agent_events_v1",
+              "internal_tasks_assigned_v1",
+              "internal_tasks_created_v1",
+              "internal_team_tasks_v1",
+              "mcp_audit_log_v1",
+              "open_applications_v1",
+              "open_payouts_v1",
+              "payout_reconciliation_v1",
+              "production_booking_integrity_v1",
+              "production_ticketing_integrity_v1",
+              "provider_link_health_v1",
+              "saas_cost_audit_v1",
+              "show_event_sales_v1",
+              "ticket_sales_timeline_v1",
+              "ticketing_availability_mismatch_v1",
+              "ticketing_configuration_v1",
+              "ticketing_discrepancies_v1",
+              "ticketing_freshness_v1",
+              "weekly_ticket_comparison_v1"
+            ],
+            "description": "Use one exact canonical versioned profile; do not invent aliases. Availability is active, gated, blocked, unsupported, or local-only. employee means Employee and Admin; admin means Admin-only. admin_session_status_v1 [active, role=admin, scope=unscoped, results=operation_run]: the authenticated Admin's current channel-bound temporary approval session, remaining lifetime, and revocation state; available_slots_v1 [active, role=employee, scope=unscoped, results=slot]: available booking slots; omit select for the complete answer-ready slot, event, venue, time, duration, mode, availability, and fee projection; bank_accounting_reconciliation_v1 [active, role=admin, scope=unscoped, results=payout_case]: unmatched bank accounting records; bookings_v1 [active, role=employee, scope=event|profile|show, results=booking]: bounded booking records; city_ticket_sales_v1 [active, role=employee, scope=unscoped, results=event|location]: ticket sales grouped by city; comedian_booking_load_v1 [active, role=employee, scope=unscoped, results=profile]: booking counts grouped by comedian; event_finance_reconciliation_v1 [blocked, role=admin, scope=event, results=payout_case]: event finance reconciliation; registered but not connected to a Product route; event_inventory_v1 [active, role=employee, scope=event|show, results=event]: event capacity and remaining inventory; omit select for the complete answer-ready inventory projection; event_sales_v1 [active, role=employee, scope=event|show, results=event]: event ticket revenue and sales totals; finance_export_scope_v1 [gated, role=admin, scope=unscoped, results=payout_case]: count-only finance export scope preview; separate Finance gate required; internal_activity_feed_v1 [active, role=employee, scope=plugin_user|message|task|attachment, results=activity_event]: sanitized team-visible activity for MCP and Site Coordination operations; never returns message bodies, exact prompts, file grants, or raw tool arguments; internal_artifacts_v1 [active, role=employee, scope=plugin_user|project|task|message|meeting|signal|operation_run, results=artifact]: cursor-paginated canonical Artifacts visible through ownership, explicit grants, or an independently visible linked entity; returns metadata only and never raw content or R2 URLs; internal_coordination_events_v1 [active, role=admin, scope=plugin_user|message|task|attachment, results=coordination_event]: restricted bounded Coordination command events with redacted correlation and no message/task body or file grant; internal_communications_v1 [active, role=employee, scope=plugin_user, results=message]: message history from internal Coordination and connected communication channels; returns bodies only for direct messages involving the authenticated user or sources where that user has an active participant membership; Admin role has no participant bypass; internal_conversations_v1 [active, role=employee, scope=plugin_user, results=message]: one bounded summary row per Coordination, WhatsApp, Slack, or email conversation visible to the authenticated participant; Admin role has no participant bypass; internal_employee_directory_v1 [active, role=employee, scope=person, results=person]: all actor-visible canonical employee identities, including people without current Task or Project involvement, with bounded versioned current-work summaries; internal_inbox_v1 [active, role=employee, scope=plugin_user, results=message]: the authenticated user's pending messages; archived Coordination tasks are excluded; internal_links_v1 [active, role=employee, scope=message|task|signal|event|show|profile, results=link]: bounded permission-filtered typed links between internal and Product records; internal_meetings_v1 [active, role=employee, scope=plugin_user, results=meeting]: chronological private Meeting list with participant roles, processing state, report/transcript availability, and six typed outcome counts; internal_messages_sent_v1 [active, role=employee, scope=plugin_user|task, results=message]: messages sent by the authenticated plugin user; internal_notifications_v1 [active, role=employee, scope=task|plugin_user, results=task]: the authenticated person's own sanitized Task-notification delivery state; Admin role has no cross-user bypass; internal_priority_board_v1 [active, role=admin, scope=unscoped, results=priority_item]: Admin-only priority board cards; archived Coordination tasks are excluded; internal_projects_v1 [active, role=employee, scope=plugin_user, results=project]: canonical Coordination Projects visible through active Project membership, with global Admin override; internal_signals_v1 [active, role=employee, scope=event|show|profile|message|task, results=signal]: bounded timestamped internal operational signals stored in Coordination D1 by connected Product, communication, meeting, and manual ingestion paths; internal_task_agent_events_v1 [blocked, role=employee, scope=task, results=activity_event|task]: sanitized cursor-backed SR Agent run events for one visible internal Task; never returns prompts, tool arguments, lease tokens, Runtime session IDs, or raw result payloads; internal_tasks_assigned_v1 [blocked, role=employee, scope=plugin_user|message|project, results=task]: tasks assigned to the authenticated plugin user; internal_tasks_created_v1 [blocked, role=employee, scope=plugin_user|message|project, results=task]: tasks requested by the authenticated plugin user; internal_team_tasks_v1 [blocked, role=employee, scope=plugin_user|project, results=task]: bounded Project-member-visible task board metadata with global Admin override; no private message bodies or attachment grants; mcp_audit_log_v1 [active, role=admin, scope=unscoped, results=mcp_tool_call]: sanitized MCP audit entries from D1 with transport correlation and bounded result metadata; exact redacted arguments remain in the durable audit store; open_applications_v1 [active, role=employee, scope=event|profile|show, results=application]: open booking applications; open_payouts_v1 [active, role=admin, scope=event, results=payout_case]: open event-closing and comedian-invoice payout cases with a bounded aggregate summary; omit select for the answer-ready default projection; payout_reconciliation_v1 [active, role=admin, scope=unscoped, results=payout_case]: payout reconciliation; production_booking_integrity_v1 [gated, role=admin, scope=unscoped, results=booking]: Production booking invariants; Production-readonly runtime only; production_ticketing_integrity_v1 [gated, role=admin, scope=unscoped, results=event]: Production ticketing invariants; Production-readonly runtime only; provider_link_health_v1 [active, role=employee, scope=event|show, results=event]: event provider-link health; saas_cost_audit_v1 [blocked, role=admin, scope=unscoped, results=subscription]: SaaS subscription costs; registered but not connected to a Product route; show_event_sales_v1 [active, role=employee, scope=show, results=event]: ticket sales for events in one show series; ticket_sales_timeline_v1 [active, role=employee, scope=event, results=event]: bucketed ticket sales timeline; use filters.bucket_minutes for day/hour buckets; ticketing_availability_mismatch_v1 [active, role=employee, scope=event|show, results=event]: canonical/provider availability mismatches; ticketing_configuration_v1 [active, role=employee, scope=event|show, results=event]: ticketing sync and provider configuration; ticketing_discrepancies_v1 [active, role=employee, scope=event|show, results=event]: canonical/provider sales discrepancies; ticketing_freshness_v1 [active, role=employee, scope=event|show, results=event]: ticketing snapshot freshness; weekly_ticket_comparison_v1 [active, role=employee, scope=unscoped, results=event]: this-week versus previous-week ticket sales"
+          },
+          "scope_ref": {
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 256,
+            "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+          },
+          "filters": {
+            "default": {},
+            "description": "Use only profile-specific canonical filter keys. available_slots_v1: availability_status, city, duration_minutes, spot_mode, starts_after, starts_before, status; bookings_v1: event_id, profile_id, show_id, starts_after, starts_before; city_ticket_sales_v1: starts_after, starts_before; comedian_booking_load_v1: count_gt, starts_after, starts_before; event_inventory_v1: city, event_id, revenue_gt_cents, show_id, starts_after, starts_before, remaining_lt; event_sales_v1: city, event_id, revenue_gt_cents, show_id, starts_after, starts_before; internal_activity_feed_v1: actor_user_ref, created_after, operation, result_status, target_kind; internal_artifacts_v1: backing_kind, artifact_kind, created_after, entity_ref, lifecycle_state, owner_user_ref, retention_class, search, updated_after; internal_coordination_events_v1: actor_user_ref, created_after, operation, result_status, target_ref; internal_communications_v1: channel_kind, conversation_ref, created_after, has_attachments, search, sender_ref; internal_conversations_v1: channel_kind; internal_employee_directory_v1: role, status; internal_inbox_v1: created_after, has_attachments, kind, priority, search, sender_user_ref, state, updated_after; internal_links_v1: created_after, link_type, source_ref, target_ref; internal_meetings_v1: participant_role, participant_user_ref, search, started_after, started_before, status; internal_messages_sent_v1: created_after, has_attachments, priority, recipient_user_ref, search, state; internal_notifications_v1: state, task_ref, updated_after; internal_priority_board_v1: state, priority, search; internal_projects_v1: member_user_ref, search, status, updated_after; internal_signals_v1: created_after, signal_type, source_kind, status; internal_task_agent_events_v1: occurred_after, run_ref, state, task_ref; internal_tasks_assigned_v1: created_after, due_before, has_attachments, priority, project_ref, requester_user_ref, search, status, updated_after; internal_tasks_created_v1: assignee_user_ref, created_after, due_before, has_attachments, priority, project_ref, search, status, updated_after; internal_team_tasks_v1: assignee_user_ref, created_after, due_before, priority, project_ref, requester_user_ref, search, status, updated_after; mcp_audit_log_v1: actor_ref, date_from, date_to, occurred_from, occurred_to, operation, operation_prefix, outcome, request_id, role, status, task_id, thread_id, tool, tool_name, turn_id; open_applications_v1: age_gt_days, event_id, profile_id, show_id; open_payouts_v1: case_type, created_after, created_before, event_id, has_failure, profile_id, status, status_family; production_booking_integrity_v1: snapshot_cutoff, starts_after; production_ticketing_integrity_v1: snapshot_cutoff, starts_after; provider_link_health_v1: city, event_id, revenue_gt_cents, show_id, starts_after, starts_before, link_status, missing_provider_links, provider; show_event_sales_v1: city, event_id, revenue_gt_cents, show_id, starts_after, starts_before; ticket_sales_timeline_v1: bucket_minutes, event_id, from, include_opening_balance, to; ticketing_availability_mismatch_v1: city, event_id, revenue_gt_cents, show_id, starts_after, starts_before; ticketing_configuration_v1: city, event_id, revenue_gt_cents, show_id, starts_after, starts_before, linked_provider_count_gte, price_sync_enabled; ticketing_discrepancies_v1: city, event_id, revenue_gt_cents, show_id, starts_after, starts_before; ticketing_freshness_v1: city, event_id, revenue_gt_cents, show_id, starts_after, starts_before. Detailed value contracts: internal_activity_feed_v1: actor_user_ref=canonical sr:plugin_user reference, created_after=exclusive RFC3339 timestamp, operation=exact registry operation, result_status=succeeded, failed, denied, or partial, target_kind=message, task, attachment, product_entity, or system; internal_artifacts_v1: backing_kind=r2 or google_drive, artifact_kind=file, transcript, analysis, plan, document, research, report, audio, video, pdf, recording, or provider_evidence, created_after=exclusive RFC3339 timestamp, entity_ref=canonical Project, Task, Message, Meeting, Signal, Run or other supported linked entity reference, lifecycle_state=staging, active, archived, expired, deleted, or failed, owner_user_ref=canonical sr:plugin_user reference, retention_class=ephemeral, bounded, long_lived, or permanent, search=plain-text terms matched against Artifact title only, updated_after=exclusive RFC3339 timestamp; internal_coordination_events_v1: actor_user_ref=canonical sr:plugin_user reference, created_after=exclusive RFC3339 timestamp, operation=exact registry operation, result_status=succeeded, failed, denied, or partial, target_ref=canonical target reference; internal_communications_v1: channel_kind=coordination, whatsapp, slack, or email, conversation_ref=canonical source reference returned by this profile, created_after=exclusive RFC3339 timestamp, has_attachments=boolean, search=plain-text terms matched against permitted message text, sender_ref=canonical plugin-user reference or exact provider sender reference already visible in the permitted result; internal_conversations_v1: channel_kind=coordination, whatsapp, slack, or email; internal_employee_directory_v1: role=admin or employee, status=active or inactive; internal_inbox_v1: created_after=exclusive RFC3339 timestamp, has_attachments=boolean, kind=message or all; task returns coordination_task_retired, priority=message priority normal or high, search=plain-text terms matched against permitted message text, sender_user_ref=canonical sr:plugin_user reference, state=message state pending, acknowledged, completed, or archived, updated_after=exclusive RFC3339 timestamp; internal_links_v1: created_after=exclusive RFC3339 timestamp, link_type=bounded registered relationship type, source_ref=canonical source reference, target_ref=canonical target reference; internal_meetings_v1: participant_role=organizer or attendee, participant_user_ref=canonical sr:plugin_user reference, search=plain-text terms matched against the meeting title, started_after=exclusive RFC3339 timestamp, started_before=exclusive RFC3339 timestamp, status=discovered, recording_ready, transcribing, analyzing, completed, or failed; internal_messages_sent_v1: created_after=exclusive RFC3339 timestamp, has_attachments=boolean, priority=normal or high, recipient_user_ref=canonical sr:plugin_user reference, search=plain-text terms matched against permitted sent-message text, state=pending, acknowledged, completed, or archived; internal_notifications_v1: state=pending, queued, sent, retry, failed, undeliverable, or cancelled, task_ref=canonical sr:task reference visible to the authenticated recipient, updated_after=exclusive RFC3339 timestamp; internal_priority_board_v1: state=active, next, waiting, backlog, or done, priority=integer 0..5, with 0 highest, search=plain-text title or summary terms, at most 120 characters; internal_projects_v1: member_user_ref=canonical sr:plugin_user reference; non-Admins may request only their own membership, search=plain-text terms matched against Project title and summary, status=planned, active, paused, completed, or cancelled, updated_after=exclusive RFC3339 timestamp; internal_signals_v1: created_after=exclusive RFC3339 timestamp, signal_type=registered bounded signal type, source_kind=product, coordination, or manual, status=active, superseded, or resolved; internal_task_agent_events_v1: occurred_after=exclusive RFC3339 timestamp, run_ref=canonical sr:task_run reference belonging to the scoped Task, state=queued, in_progress, needs_review, accepted, completed, retry, failed, dead_letter, or changes_requested, task_ref=canonical sr:task reference; required when scope_ref is omitted; mcp_audit_log_v1: actor_ref=canonical sr:profile UUID reference, date_from=alias of occurred_from; RFC3339 timestamp, date_to=alias of occurred_to; RFC3339 timestamp, occurred_from=inclusive RFC3339 timestamp, occurred_to=inclusive RFC3339 snapshot cutoff, operation=exact operation or trailing-* prefix, operation_prefix=literal operation prefix, outcome=alias of status, request_id=opaque x-sr-request-id correlation value, role=employee or admin, status=started, succeeded, denied, failed, or cancelled, task_id=opaque x-sr-task-id correlation value, thread_id=opaque x-sr-thread-id correlation value, tool=alias of tool_name, tool_name=one of the six public tool names, turn_id=opaque x-sr-turn-id correlation value; open_payouts_v1: case_type=event_closing or comedian_invoice, created_after=inclusive RFC3339 timestamp, created_before=exclusive RFC3339 timestamp, event_id=numeric Product event id; prefer scope_ref=sr:event:<id>, has_failure=boolean, profile_id=canonical profile UUID without sr: prefix, status=exact source status, status_family=open, in_progress, or failed. Use scope_ref for a supported canonical entity scope. Do not invent operators or aliases such as starts_at.gte, date_from, or revenue_gt. A typed error returns the exact allowed filters for one corrected retry; do not probe.",
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 96
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/__schema0"
+            }
+          },
+          "select": {
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 96,
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "description": "Optional profile-specific projection. Query results contain each selected field; do not follow a complete query with per-item entity_get calls. available_slots_v1 select fields: slot_ref, event_ref, show_ref, show_title, location_ref, location_title, city, starts_at, ends_at, duration_minutes, spot_mode, availability_status, fee_eur. Omit select to receive all answer-ready fields. Use filters city, starts_after, starts_before, duration_minutes, spot_mode, and availability_status; a duration filter must be an integer number of minutes. event_inventory_v1 select fields: event_ref, show_ref, show_title, location_ref, location_title, city, starts_at, sold_quantity, capacity_quantity, remaining_quantity, latest_attempt_status, has_stale_snapshot_warning, capacity_sync_enabled, ticket_inventory_status. Omit select to receive all of these answer-ready fields. Do not use aliases such as name, label, capacity, remaining, entity_ref, tickets_sold, or remaining_capacity. open_payouts_v1 select fields: payout_case_ref, case_type, event_ref, event_title, event_starts_at, profile_ref, profile_name, amount_cents, amount_direction, currency, status, status_family, failure_code, failed_at, created_at. Omit select for the bounded default: payout_case_ref, case_type, event_ref, event_title, event_starts_at, profile_ref, amount_cents, amount_direction, currency, status, status_family, failure_code, failed_at, created_at. The response also contains summary with aggregate counts; request profile_name only when a person name is needed. Unsupported profile fields return the typed query_select_not_supported tool error."
+          },
+          "group_by": {
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 96,
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "description": "Profile-supported grouping dimensions only. city_ticket_sales_v1: city; comedian_booking_load_v1: profile; internal_team_tasks_v1: assignee; show_event_sales_v1: event; ticket_sales_timeline_v1: event, platform, ticket_type; weekly_ticket_comparison_v1: period"
+          },
+          "sort": {
+            "default": [],
+            "description": "Use at most one profile-supported canonical sort. available_slots_v1: starts_at asc; bank_accounting_reconciliation_v1: created_at desc; bookings_v1: starts_at asc; city_ticket_sales_v1: gross_revenue_cents desc, revenue desc; comedian_booking_load_v1: booking_count desc; event_inventory_v1: starts_at asc, gross_revenue_cents desc, revenue desc; event_sales_v1: starts_at asc, gross_revenue_cents desc, revenue desc; internal_activity_feed_v1: occurred_at desc; internal_artifacts_v1: updated_at desc; internal_coordination_events_v1: occurred_at desc; internal_communications_v1: occurred_at desc; internal_conversations_v1: last_message_at desc; internal_employee_directory_v1: display_name asc; internal_inbox_v1: actionable_at asc; internal_links_v1: created_at desc; internal_meetings_v1: started_at desc; internal_messages_sent_v1: occurred_at desc; internal_notifications_v1: updated_at desc; internal_priority_board_v1: sort_order asc; internal_projects_v1: updated_at desc; internal_signals_v1: occurred_at desc; internal_task_agent_events_v1: occurred_at asc; internal_tasks_assigned_v1: updated_at desc; internal_tasks_created_v1: updated_at desc; internal_team_tasks_v1: updated_at desc; mcp_audit_log_v1: occurred_at desc; open_applications_v1: created_at asc; open_payouts_v1: created_at asc, created_at desc; payout_reconciliation_v1: created_at desc; production_booking_integrity_v1: category asc; production_ticketing_integrity_v1: category asc; provider_link_health_v1: starts_at asc, gross_revenue_cents desc, revenue desc; show_event_sales_v1: starts_at asc, gross_revenue_cents desc, revenue desc; ticket_sales_timeline_v1: bucket_start asc; ticketing_availability_mismatch_v1: starts_at asc, gross_revenue_cents desc, revenue desc; ticketing_configuration_v1: starts_at asc, gross_revenue_cents desc, revenue desc; ticketing_discrepancies_v1: starts_at asc, gross_revenue_cents desc, revenue desc; ticketing_freshness_v1: starts_at asc, gross_revenue_cents desc, revenue desc; weekly_ticket_comparison_v1: starts_at asc.",
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "maxLength": 96,
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "direction": {
+                  "type": "string",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ]
+                }
+              },
+              "required": [
+                "field",
+                "direction"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "detail_level": {
+            "default": "standard",
+            "type": "string",
+            "enum": [
+              "summary",
+              "standard",
+              "detailed"
+            ]
+          },
+          "limit": {
+            "default": 50,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200
+          },
+          "cursor": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          }
+        },
+        "required": [
+          "profile",
+          "filters",
+          "sort",
+          "detail_level",
+          "limit"
+        ],
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "output_schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "2026-07-27"
+          },
+          "audit_ref": {
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 256,
+            "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "description": "Full RFC 3339 timestamp with time and UTC offset, for example 2026-07-30T20:00:00+02:00 or 2026-07-30T18:00:00Z. Date-only values such as 2026-07-30 are invalid."
+          },
+          "coverage": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "complete",
+                  "partial",
+                  "unknown"
+                ]
+              },
+              "sources": {
+                "default": [],
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              },
+              "missing": {
+                "default": [],
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              }
+            },
+            "required": [
+              "status",
+              "sources",
+              "missing"
+            ],
+            "additionalProperties": false
+          },
+          "warnings": {
+            "default": [],
+            "maxItems": 32,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 96
+                },
+                "message": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                },
+                "details": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "profile": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "items": {
+            "maxItems": 200,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "$ref": "#/$defs/__schema0"
+              }
+            }
+          },
+          "page": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 200
+              },
+              "returned": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 200
+              },
+              "next_cursor": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2048
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "truncated": {
+                "type": "boolean"
+              },
+              "total_estimate": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "limit",
+              "returned",
+              "next_cursor",
+              "truncated",
+              "total_estimate"
+            ],
+            "additionalProperties": false
+          },
+          "sanity_status": {
+            "type": "string",
+            "enum": [
+              "healthy",
+              "violations_found",
+              "incomplete",
+              "unavailable"
+            ]
+          },
+          "sanity": {
+            "type": "object",
+            "properties": {
+              "profile": {
+                "type": "string",
+                "enum": [
+                  "production_ticketing_integrity_v1",
+                  "production_booking_integrity_v1"
+                ]
+              },
+              "snapshot_id": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 256
+              },
+              "snapshot_cutoff": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "description": "Full RFC 3339 timestamp with time and UTC offset, for example 2026-07-30T20:00:00+02:00 or 2026-07-30T18:00:00Z. Date-only values such as 2026-07-30 are invalid."
+              },
+              "freshness": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "fresh",
+                      "stale",
+                      "unknown"
+                    ]
+                  },
+                  "observed_at": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                        "description": "Full RFC 3339 timestamp with time and UTC offset, for example 2026-07-30T20:00:00+02:00 or 2026-07-30T18:00:00Z. Date-only values such as 2026-07-30 are invalid."
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "age_seconds": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "max_age_seconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 86400
+                  }
+                },
+                "required": [
+                  "status",
+                  "observed_at",
+                  "age_seconds",
+                  "max_age_seconds"
+                ],
+                "additionalProperties": false
+              },
+              "violation_count": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "violation_categories": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "maxLength": 96,
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "redacted_refs": {
+                "maxItems": 50,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 7,
+                  "maxLength": 256,
+                  "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+                }
+              }
+            },
+            "required": [
+              "profile",
+              "snapshot_id",
+              "snapshot_cutoff",
+              "freshness",
+              "violation_count",
+              "violation_categories",
+              "redacted_refs"
+            ],
+            "additionalProperties": false
+          },
+          "summary": {
+            "description": "Optional bounded aggregate/summary projection for the selected profile and filters; it never replaces cursor-paginated items.",
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "maxLength": 96,
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/__schema0"
+            }
+          },
+          "status": {
+            "description": "Present for typed query results: completed, invalid, permission_denied, or failed. Successful legacy-compatible query pages may omit it.",
+            "type": "string",
+            "enum": [
+              "completed",
+              "invalid",
+              "permission_denied",
+              "failed"
+            ]
+          },
+          "error_code": {
+            "description": "Stable machine-readable code for a typed non-success result.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "message": {
+            "description": "Safe human-readable explanation of the typed non-success result.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "error": {
+            "description": "Structured typed-error evidence; when present, use error.result_status for trace semantics and error.error_code for branching.",
+            "type": "object",
+            "properties": {
+              "error_code": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "result_status": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "retryable": {
+                "type": "boolean"
+              },
+              "details": {
+                "description": "Safe machine-readable diagnostics such as missing_fields, unexpected_fields, expected_shapes, or reconciliation instructions. Never contains secrets or raw Product rows.",
+                "$ref": "#/$defs/__schema0"
+              }
+            },
+            "required": [
+              "error_code",
+              "result_status",
+              "message",
+              "retryable"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "schema_version",
+          "audit_ref",
+          "observed_at",
+          "coverage",
+          "warnings",
+          "profile",
+          "items",
+          "page"
+        ],
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "sr_runtime_health": {
+      "metadata": {
+        "title": "Check Standup Republic runtime health",
+        "description": "Read sanitized status, freshness, last-success evidence, and bounded metrics for selected components: auth, identity, coordination, attachments, database, main_app, mcp, agent_runtime, meeting_sync, payout_pipeline, and ticketing_sync. window is a bounded lookback. detail_level=summary is available to Employee and Admin; diagnostic is Admin-only and fails closed with allowed_detail_level=summary for Employee callers. Optional catalog reads the live server registry: components:['mcp'] with catalog:{kind:'overview'} lists capabilities; kind action/query/entity and key returns exact current contracts. Use this before declaring a capability unavailable from installed plugin files. Catalog metadata is not target authorization. This tool does not expose raw logs, provider payloads, file names, or Production rows.",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true
+        }
+      },
+      "input_schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "components": {
+            "minItems": 1,
+            "maxItems": 11,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "attachments",
+                "auth",
+                "coordination",
+                "database",
+                "identity",
+                "main_app",
+                "mcp",
+                "agent_runtime",
+                "meeting_sync",
+                "payout_pipeline",
+                "ticketing_sync"
+              ]
+            }
+          },
+          "catalog": {
+            "description": "Read the live server capability registry. Use components:['mcp'], catalog:{kind:'overview'} for names and roles, or kind action/query/entity with exact key for payload/filter/section details. Metadata never grants target authorization.",
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "overview"
+                  }
+                },
+                "required": [
+                  "kind"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "action",
+                      "query",
+                      "entity"
+                    ]
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "kind",
+                  "key"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "window": {
+            "default": "1h",
+            "type": "string",
+            "pattern": "^[1-9][0-9]*[mhd]$"
+          },
+          "detail_level": {
+            "default": "summary",
+            "description": "Choose summary for General health available to Employee and Admin roles, or diagnostic for Admin-only internal diagnostics.",
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "summary",
+                "description": "General sanitized health; available to Employee and Admin roles."
+              },
+              {
+                "type": "string",
+                "const": "diagnostic",
+                "description": "Deeper internal diagnostics; Admin-only and denied fail-closed for Employee callers."
+              }
+            ]
+          }
+        },
+        "required": [
+          "components",
+          "window",
+          "detail_level"
+        ],
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "2026-07-27"
+          },
+          "audit_ref": {
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 256,
+            "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "description": "Full RFC 3339 timestamp with time and UTC offset, for example 2026-07-30T20:00:00+02:00 or 2026-07-30T18:00:00Z. Date-only values such as 2026-07-30 are invalid."
+          },
+          "coverage": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "complete",
+                  "partial",
+                  "unknown"
+                ]
+              },
+              "sources": {
+                "default": [],
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              },
+              "missing": {
+                "default": [],
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              }
+            },
+            "required": [
+              "status",
+              "sources",
+              "missing"
+            ],
+            "additionalProperties": false
+          },
+          "warnings": {
+            "default": [],
+            "maxItems": 32,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 96
+                },
+                "message": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                },
+                "details": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "healthy",
+              "degraded",
+              "down",
+              "unknown",
+              "invalid",
+              "permission_denied",
+              "failed"
+            ]
+          },
+          "components": {
+            "maxItems": 11,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "component": {
+                  "type": "string",
+                  "enum": [
+                    "attachments",
+                    "auth",
+                    "coordination",
+                    "database",
+                    "identity",
+                    "main_app",
+                    "mcp",
+                    "agent_runtime",
+                    "meeting_sync",
+                    "payout_pipeline",
+                    "ticketing_sync"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "healthy",
+                    "degraded",
+                    "down",
+                    "unknown"
+                  ]
+                },
+                "last_success_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                      "description": "Full RFC 3339 timestamp with time and UTC offset, for example 2026-07-30T20:00:00+02:00 or 2026-07-30T18:00:00Z. Date-only values such as 2026-07-30 are invalid."
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "summary": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                },
+                "metrics": {
+                  "default": {},
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {
+                    "$ref": "#/$defs/__schema0"
+                  }
+                }
+              },
+              "required": [
+                "component",
+                "status",
+                "last_success_at",
+                "summary",
+                "metrics"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "catalog": {
+            "type": "object",
+            "properties": {
+              "contract_version": {
+                "type": "string",
+                "const": "2026-07-27"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "overview",
+                  "action",
+                  "query",
+                  "entity"
+                ]
+              },
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "authorization_boundary": {
+                "type": "string",
+                "minLength": 1
+              },
+              "metadata": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            },
+            "required": [
+              "contract_version",
+              "kind",
+              "authorization_boundary",
+              "metadata"
+            ],
+            "additionalProperties": false
+          },
+          "error_code": {
+            "description": "Stable machine-readable code for a typed non-success result.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "message": {
+            "description": "Safe human-readable explanation of the typed non-success result.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "error": {
+            "description": "Structured typed-error evidence; when present, use error.result_status for trace semantics and error.error_code for branching.",
+            "type": "object",
+            "properties": {
+              "error_code": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "result_status": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "retryable": {
+                "type": "boolean"
+              },
+              "details": {
+                "description": "Safe machine-readable diagnostics such as missing_fields, unexpected_fields, expected_shapes, or reconciliation instructions. Never contains secrets or raw Product rows.",
+                "$ref": "#/$defs/__schema0"
+              }
+            },
+            "required": [
+              "error_code",
+              "result_status",
+              "message",
+              "retryable"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "schema_version",
+          "audit_ref",
+          "observed_at",
+          "coverage",
+          "warnings",
+          "status",
+          "components"
+        ],
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "sr_action_prepare": {
+      "metadata": {
+        "title": "Prepare a Standup Republic action",
+        "description": "Validate and freeze one registry-backed Product or internal Coordination action without mutating state. Before declaring an operation unavailable, discover the live registry via sr_runtime_health with components:['mcp'], catalog:{kind:'overview'}, then catalog:{kind:'action',key:'<operation>'} for exact payload and reference requirements. Choose operation by availability, required role, target type, confirmation_policy, use_when/not_for, required references, dependencies, and exact payload guide. A request to move, reschedule, or rebook an existing comedian between slots is booking.move with both source and destination slot refs; resolve ambiguous names through the occupied source slot and never substitute booking.remove. For Event text, the words Memo, Notiz, or Beschreibung alone are ambiguous: ask whether the user means organizer-only internal note, public customer description, or public Event title before calling Prepare. Never infer visibility from a legacy UI label. Omit legacy domain; the server derives it from operation and rejects mismatches. Invalid payloads return machine-readable missing_fields, unexpected_fields, and expected_shapes for one corrected retry. A successful Prepare returns a 48-hour manifest, opaque prepare_token, confirmation_policy, and execution_ready. For not_required operations call Execute immediately without showing a preview or asking again; required operations must wait for explicit user confirmation.",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true
+        }
+      },
+      "input_schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "domain": {
+            "description": "Optional legacy hint. Prefer omitting domain: the server derives the authoritative domain from operation. If supplied, it must match the operation registry.",
+            "type": "string",
+            "enum": [
+              "event",
+              "ticketing",
+              "booking",
+              "finance",
+              "admin",
+              "coordination"
+            ]
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "admin_session.activate",
+              "admin_session.revoke",
+              "application.accept",
+              "application.reject",
+              "batch.execute",
+              "booking.move",
+              "booking.remove",
+              "comedian.book",
+              "communication.message.acknowledge",
+              "communication.message.archive",
+              "communication.message.complete",
+              "communication.message.reply",
+              "communication.message.send",
+              "coordination.artifact.create",
+              "coordination.artifact.delete",
+              "coordination.artifact.grant.add",
+              "coordination.artifact.grant.revoke",
+              "coordination.artifact.link.add",
+              "coordination.artifact.link.remove",
+              "coordination.artifact.update",
+              "coordination.artifact.upload_finalize",
+              "coordination.artifact.version.create",
+              "coordination.attachment.upload_finalize",
+              "coordination.attachment.upload_prepare",
+              "coordination.entity_context_link.add",
+              "coordination.entity_context_link.remove",
+              "coordination.priority_item.complete",
+              "coordination.priority_item.create",
+              "coordination.priority_item.update",
+              "coordination.project.create",
+              "coordination.project.link.add",
+              "coordination.project.link.remove",
+              "coordination.project.member.add",
+              "coordination.project.member.remove",
+              "coordination.project.update",
+              "coordination.task.cancel",
+              "coordination.task.comment.create",
+              "coordination.task.complete",
+              "coordination.task.create",
+              "coordination.task.link.add",
+              "coordination.task.link.remove",
+              "coordination.task.review.accept",
+              "coordination.task.review.reject",
+              "coordination.task.update",
+              "coordination.task_proposal.accept",
+              "coordination.task_proposal.defer",
+              "coordination.task_proposal.reject",
+              "coordination.task_proposal.request_changes",
+              "coordination.whatsapp_history.import",
+              "coordination.whatsapp_history.rollback",
+              "event.bulk_metadata_update",
+              "event.cancel",
+              "event.create",
+              "event.create_recurring",
+              "event.internal_note.set",
+              "event.lineup_message.send",
+              "event.public_description.set",
+              "event.public_title.set",
+              "event.update",
+              "export.generate",
+              "host.set",
+              "infrastructure.capacity_schedule",
+              "invitation.create",
+              "location.create",
+              "ownership_transfer.prepare",
+              "payment_account.relink",
+              "payment_account.unlink_for_reonboarding",
+              "plugin_user.add",
+              "plugin_user.disable",
+              "plugin_user.set_role",
+              "product_access.change_role",
+              "product_access.grant",
+              "provider_event.create",
+              "provider_link.bulk_set",
+              "provider_link.remove",
+              "provider_link.set",
+              "provider_ticketing.override_live",
+              "show.create",
+              "show.create_with_events",
+              "slot.create",
+              "slot.fee.set",
+              "spot_mode.set",
+              "ticketing.canonical_price.set",
+              "ticketing.contingent.set",
+              "ticketing.sync.request",
+              "ticketing.sync_settings.set",
+              "ticketing.ticket_class.create",
+              "ticketing.ticket_class.update"
+            ],
+            "description": "Versioned allowlisted Product operation. Choose by availability, role, target type, and use_when; the server derives domain. admin_session.activate [active, role=admin, domain=admin, confirmation=required, effect=internal_only:none, targets=operation_run, refs=none, creates=operation_run, deps=none]: use when activate one explicit, audited, person-bound and current-channel-bound no-repeat-confirmation window for already permitted Admin actions; not for granting roles/scopes, crossing users or channels, service identities, group channels, or bypassing sensitive Finance, Payment, Payout, Credential, Identity/Role, destructive, irreversible, or provider-wide changes; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {duration_minutes:1..240} | admin_session.revoke [active, role=admin, domain=admin, confirmation=not_required, effect=internal_only:none, targets=operation_run, refs=none, creates=none, deps=none]: use when immediately revoke the authenticated Admin's current channel-bound temporary approval session; not for revoking another user or another channel session; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {reason?} | application.accept [active, role=employee, domain=booking, confirmation=required, effect=receipt_required:email, targets=application|booking, refs=application_ref, creates=booking, deps=application]: use when accept one existing open application; not for rejecting or moving a booking; effect claim Use only the Main App-owned delivery intent and its current canonical stage; internal acceptance alone never proves sending or delivery.; payload {application_ref} | application.reject [blocked, role=employee, domain=booking, confirmation=required, effect=internal_only:none, targets=application, refs=application_ref, creates=none, deps=application]: use when request rejection of one application after its separate capability gate; not for accepting an application; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload blocked in V1: {application_ref,reason?} | batch.execute [active, role=admin, domain=admin, confirmation=required, effect=aggregate:none, targets=operation_run, refs=items[].payload, creates=operation_run, deps=none]: use when freeze 2-50 related, individually valid Admin-scope actions from one clear user intent into one preview, one confirmation, and one canonical aggregate receipt; not for unrelated intents, Finance/Payment/Payout/Credential/Identity/Role/destructive/irreversible/provider-wide actions, nested batches or sessions, or pretending best-effort execution is atomic; effect claim Derive external-effect claims only from the frozen child receipts; aggregate success never upgrades a child's not_requested, pending, failed, or unknown state.; payload {intent,items:[{operation,payload,reason?}] (2..50),failure_policy?:'stop'|'continue',atomicity:'best_effort'} | booking.move [active, role=employee, domain=booking, confirmation=required, effect=internal_only:none, targets=booking|slot, refs=from_slot_ref|to_slot_ref, creates=none, deps=booking|slot]: use when move one existing booking between two identified slots; resolve an ambiguous person through the occupied source slot before preparing; not for creating a new booking or removing and recreating a booking; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {from_slot_ref,to_slot_ref} | booking.remove [active, role=employee, domain=booking, confirmation=required, effect=receipt_required:email, targets=booking|slot, refs=booking_ref|slot_ref, creates=none, deps=booking]: use when remove an identified booking or occupied slot without replacing it; not for rejecting an open application or moving/rescheduling/rebooking a comedian to another slot; use booking.move with both slot refs; effect claim Use only the Main App-owned cancellation email intent and canonical delivery stage; the cancellation ledger alone proves no delivery.; payload {booking_ref or slot_ref,reason?,notification_policy?} | comedian.book [active, role=employee, domain=booking, confirmation=required, effect=receipt_required:email, targets=booking|profile|slot, refs=profile_ref|slot_ref, creates=booking, deps=profile|slot]: use when book one identified comedian into one identified free slot; not for creating an invitation; effect claim Use only the versioned Main App Product-policy decision; this operation currently reports not_requested_by_policy rather than inventing a notification.; payload {profile_ref,slot_ref} | communication.message.acknowledge [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=message, refs=message_ref, creates=none, deps=message]: use when mark one received pending internal message as acknowledged; not for completing, archiving, or merely reading a message; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {message_ref} | communication.message.archive [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=message, refs=message_ref, creates=none, deps=message]: use when archive one message visible to the authenticated sender or recipient; not for hard-deleting message history; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {message_ref} | communication.message.complete [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=message, refs=message_ref, creates=none, deps=message]: use when mark one received or sent internal message as completed; not for archiving or hard-deleting it; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {message_ref} | communication.message.reply [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=message, refs=message_ref, creates=message, deps=message]: use when reply to one visible direct internal Coordination message; the server derives the active counterpart and canonical thread from the source message; not for external email, WhatsApp or Slack delivery; provider destinations; selecting a recipient, conversation or thread in payload; effect claim This replies only inside the canonical Coordination thread; never describe it as an email, WhatsApp, Slack, or other external reply.; payload {message_ref,body_markdown,attachment_refs?:[...]} | communication.message.send [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=message|plugin_user, refs=recipient_ref, creates=message, deps=plugin_user]: use when send one direct internal message to one active allowlisted plugin user; Prepare may be followed immediately by Execute; not for external email/WhatsApp delivery or selecting the sender in payload; effect claim This sends only one canonical internal Coordination message; never describe it as an email, WhatsApp, Slack, or other external delivery.; payload {recipient_ref,body_markdown,subject?,priority?:'normal'|'high',task_ref?,attachment_refs?:[...],batch_ref?} | coordination.artifact.create [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=artifact, refs=none, creates=artifact, deps=none]: use when create one canonical Artifact with exactly one backing: immutable private R2 content or a link-only Google Drive file pending readonly provider verification; not for mixing R2 and Drive fields, embedding bytes, inventing provider metadata, exposing a raw R2 URL, changing Drive permissions, or bypassing linked-entity visibility; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload R2 {title,artifact_kind,backing_kind:'r2',original_filename,media_type,size_bytes,sha256,retention_class,...}; Drive {title,artifact_kind,backing_kind:'google_drive',drive_file_id,retention_class,...} | coordination.artifact.delete [active, role=employee, domain=coordination, confirmation=required, effect=internal_only:none, targets=artifact, refs=artifact_ref, creates=none, deps=artifact]: use when logically delete one owned Artifact after optimistic concurrency, active-hold and authorization checks; not for direct R2 deletion, deleting provider/meeting evidence, bypassing retention, or erasing audit/version history; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {artifact_ref,expected_revision,reason} | coordination.artifact.grant.add [active, role=employee, domain=coordination, confirmation=required, effect=internal_only:none, targets=artifact|plugin_user, refs=artifact_ref|user_ref, creates=none, deps=artifact|plugin_user]: use when grant one active allowlisted user viewer or editor access to an owned Artifact; linked-entity policy still applies independently; not for public links, team-wide implicit grants, Product role changes, or bypassing a linked entity's visibility; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {artifact_ref,user_ref,grant_role:'viewer'|'editor',expires_at?} | coordination.artifact.grant.revoke [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=artifact|plugin_user, refs=artifact_ref|user_ref, creates=none, deps=artifact|plugin_user]: use when revoke one active viewer/editor grant from an owned Artifact; not for removing ownership, deleting history, or changing Project membership; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {artifact_ref,user_ref,grant_role:'viewer'|'editor',reason?} | coordination.artifact.link.add [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=artifact, refs=artifact_ref|entity_ref, creates=none, deps=artifact]: use when link one owned Artifact to an independently authorized canonical Project, Task, Message, Meeting, Signal, Run or other supported entity; not for granting visibility through the link, arbitrary URLs, or linking an entity the actor cannot access; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {artifact_ref,entity_ref,link_role:'attachment'|'source'|'evidence'|'output'|'context'|'current_document'|'delivery'} | coordination.artifact.link.remove [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=artifact, refs=artifact_ref|entity_ref, creates=none, deps=artifact]: use when remove one active Artifact link while preserving immutable link/audit history; not for deleting the Artifact or weakening the linked entity's own visibility policy; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {artifact_ref,entity_ref,link_role} | coordination.artifact.update [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=artifact, refs=artifact_ref, creates=none, deps=artifact]: use when optimistically update the mutable Artifact identity, title, lifecycle or retention without rewriting content versions; not for changing immutable blob/version provenance or shortening retention below an active hold; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {artifact_ref,expected_revision,patch:{title?,lifecycle_state?,retention_class?,expires_at?},note?} | coordination.artifact.upload_finalize [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=artifact, refs=artifact_ref|version_ref, creates=none, deps=artifact]: use when verify the exact reserved Artifact bytes and activate the staged immutable version; not for Google Drive Artifacts, finalizing an unknown digest, changing retention/audience, or selecting another user's Artifact; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {artifact_ref,version_ref,sha256} | coordination.artifact.version.create [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=artifact, refs=artifact_ref, creates=none, deps=artifact]: use when append one immutable R2 content version to an editable long-lived R2 Artifact with optimistic concurrency; not for Google Drive Artifacts, rewriting an existing version, provider evidence, or retrying after a revision conflict without re-reading; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {artifact_ref,expected_revision,original_filename,media_type,size_bytes,sha256,change_note?} | coordination.attachment.upload_finalize [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=attachment, refs=attachment_ref, creates=none, deps=attachment]: use when legacy alias: verify a reserved 30-day private transfer Artifact and publish its metadata as ready; not for new long-lived documents; use coordination.artifact.create and coordination.artifact.upload_finalize; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {attachment_ref,sha256?} | coordination.attachment.upload_prepare [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=attachment, refs=none, creates=attachment, deps=none]: use when legacy alias: reserve one 30-day transfer Artifact before sending or assigning a file; not for long-lived/versioned documents or new integrations; use coordination.artifact.create; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {original_filename,media_type,size_bytes,sha256?,message_ref?,task_ref?} | coordination.entity_context_link.add [active, role=admin, domain=coordination, confirmation=required, effect=internal_only:none, targets=project|task|message|signal|meeting|artifact|link, refs=target_ref, creates=link, deps=none]: use when add or reactivate one source-grounded context link on exactly one canonical Project or Task after independently authorizing the target and source; not for copying raw source content, replacing existing Project links or Task provenance/context_url, linking a private source across actors, arbitrary HTTP URLs, Product/UI writes, or unconfirmed backfill mutation; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload internal {target_ref,source_kind:'message'|'signal'|'meeting'|'artifact',source_ref,relation:'source'|'evidence'|'context'|'decision'|'output'|'reference',summary_redacted,visibility:'team'|'participants'|'admin',evidence_digest}; external {target_ref,source_kind:'external_url',source_url,provenance_ref,relation,summary_redacted,visibility,evidence_digest} | coordination.entity_context_link.remove [active, role=admin, domain=coordination, confirmation=required, effect=internal_only:none, targets=project|task|link, refs=context_link_ref, creates=none, deps=link|operation_run]: use when remove one active entity context link using the exact add receipt and evidence digest while preserving immutable lifecycle/audit records; not for hard deletion, removing legacy Project links or Task provenance/context_url, broad reset, cross-actor cleanup, or changed-evidence overwrite; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {context_link_ref,applied_receipt_ref,expected_evidence_digest,reason} | coordination.priority_item.complete [active, role=admin, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=priority_item, refs=priority_item_ref, creates=none, deps=priority_item]: use when mark one Admin priority board card done using its current revision; not for completing an archived Coordination task or overwriting a stale board revision; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {priority_item_ref,expected_revision} | coordination.priority_item.create [active, role=admin, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=priority_item, refs=none, creates=priority_item, deps=none]: use when create one Admin priority board card without an assignee or Project; not for creating an archived Coordination task, assigning a person, attaching a Project, or adding comments; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {title,summary,state?:'active'|'next'|'waiting'|'backlog'|'done',status?:string,priority?:0..5,blocker?:string|null,deadline?:RFC3339|null,sort_order?:number} | coordination.priority_item.update [active, role=admin, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=priority_item, refs=priority_item_ref, creates=none, deps=priority_item]: use when edit one Admin priority board card using its current revision; not for editing an archived Coordination task or overwriting a stale board revision; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {priority_item_ref,expected_revision,patch:{title?,summary?,state?,status?,priority?:0..5,blocker?:string|null,deadline?:RFC3339|null,sort_order?}} | coordination.project.create [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=project, refs=none, creates=project, deps=none]: use when create one canonical internal Coordination Project; the creator becomes its first active lead member; not for creating a personal Codex Work-System Project, Product record, task hierarchy, or autonomous Project agent; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {title,summary?,status?:'planned'|'active'} | coordination.project.link.add [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=project|link|meeting|message|signal, refs=project_ref|target_ref, creates=link, deps=project]: use when attach one visible Meeting, Message, or Signal to a Project through one canonical typed link; not for Task containment, Product writes, external delivery, arbitrary link types, or linking an entity the actor cannot read; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {project_ref,target_ref}; target_ref must be sr:meeting, sr:message, or sr:signal | coordination.project.link.remove [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=project|link|meeting|message|signal, refs=project_ref|target_ref, creates=none, deps=project|link]: use when remove one active canonical Project link without deleting its audit history; not for removing Task containment, deleting source records, or changing Product/Production rights; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {project_ref,target_ref}; target_ref must be sr:meeting, sr:message, or sr:signal | coordination.project.member.add [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=project|plugin_user, refs=project_ref|user_ref, creates=none, deps=project|plugin_user]: use when add or reactivate one verified active person as a Project member or lead where the actor is already an active member; Admin has the global override; not for granting Product, Production, Finance, provider, external-messaging, plugin-role, or OAuth rights; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {project_ref,user_ref,membership_role?:'member'|'lead'} | coordination.project.member.remove [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=project|plugin_user, refs=project_ref|user_ref, creates=none, deps=project|plugin_user]: use when remove one active Project membership where the actor is an active member; Admin has the global override; not for removing the final active member, revoking plugin identity, or changing Product/Production action rights; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {project_ref,user_ref,note?} | coordination.project.update [active, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=project, refs=project_ref, creates=none, deps=project]: use when change title, summary, or lifecycle of one Project where the authenticated user is an active member; Admin has the global override; not for Product, Production, Finance, provider, credential, or external-messaging changes; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {project_ref,patch:{title?,summary?,status?:'planned'|'active'|'paused'|'completed'|'cancelled'},note?} | coordination.task.cancel [blocked, role=employee, domain=coordination, confirmation=not_required, effect=receipt_required:notification, targets=task, refs=task_ref, creates=none, deps=task]: use when cancel one task through active Project membership or global Admin override; not for hard-deleting task history or changing Product/Production state; effect claim Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.; payload {task_ref,reason?,source?:{kind:'manual'|'message'|'signal'|'external',ref?,quote?,author_ref?,author_display?,occurred_at?,evidence_ref?}} | coordination.task.comment.create [blocked, role=employee, domain=coordination, confirmation=not_required, effect=receipt_required:notification, targets=task, refs=task_ref, creates=none, deps=task]: use when add one chronological comment or reply to a Task through active Project membership or global Admin override; Prepare may be followed immediately by Execute; not for commenting outside an authorized Project, editing task fields, sending an external message, or fabricating another author; effect claim Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.; payload {task_ref,body_markdown,parent_comment_ref?} | coordination.task.complete [blocked, role=employee, domain=coordination, confirmation=not_required, effect=receipt_required:notification, targets=task, refs=task_ref, creates=none, deps=task]: use when complete one human-assigned task through active Project membership or global Admin override; not for accepting an SR Agent result, which requires coordination.task.review.accept, deleting audit history, or changing Product/Production state; effect claim Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.; payload {task_ref,note?,source?:{kind:'manual'|'message'|'signal'|'external',ref?,quote?,author_ref?,author_display?,occurred_at?,evidence_ref?}} | coordination.task.create [blocked, role=employee, domain=coordination, confirmation=not_required, effect=receipt_required:notification, targets=task|plugin_user|project|person, refs=assignee_ref, creates=task, deps=person]: use when create one compact internal Coordination task with exactly one canonical personal Assignee; Project remains optional; not for creating an unassigned normal Task, creating a Linear issue, task hierarchy, a versioned intake/backfill exception, separate automation model, or bypassing backend-owned Project/member authorization when refs are supplied; effect claim Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.; payload {title,objective,assignee_ref,project_ref?,details_markdown?,status?:'backlog'|'planned'|'active'|'blocked'|'completed'|'cancelled',priority?:'P0'|'P1'|'P2'|'P3'|'P4'|'P5',due_at?,source?:{kind:'manual'|'message'|'signal'|'external',ref?,quote?,author_ref?,author_display?,occurred_at?,evidence_ref?},source_message_ref?,issue_ref?,context_url?,attachment_refs?:[...]}; assignee_ref is exactly one canonical sr:person ref; priority defaults to P3 and P0 is highest | coordination.task.link.add [blocked, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=task|link, refs=task_ref|related_task_ref, creates=link, deps=task]: use when add the one canonical unordered task_related link between two existing Tasks the authenticated user may change; not for task hierarchy, dependency scheduling, arbitrary link types, self-links, or linking a Task the actor cannot change; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {task_ref,related_task_ref}; link_type is fixed server-side to task_related and the pair is canonicalized | coordination.task.link.remove [blocked, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=task|link, refs=task_ref|related_task_ref, creates=none, deps=task|link]: use when remove the active canonical task_related link between two existing Tasks the authenticated user may change; not for deleting Task or link audit history, dependency scheduling, arbitrary link types, or removing links to a Task the actor cannot change; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {task_ref,related_task_ref}; link_type is fixed server-side to task_related and the pair is canonicalized | coordination.task.review.accept [blocked, role=employee, domain=coordination, confirmation=not_required, effect=receipt_required:notification, targets=task, refs=task_ref, creates=none, deps=task]: use when an active Project member or global Admin accepts an SR Agent result in needs_review; this completes the same task and persistent run; not for completing a human-assigned task or granting Product/Production authority; effect claim Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.; payload {task_ref,note?,source?:{kind:'manual'|'message'|'signal'|'external',ref?,quote?,author_ref?,author_display?,occurred_at?,evidence_ref?}} | coordination.task.review.reject [blocked, role=employee, domain=coordination, confirmation=not_required, effect=receipt_required:notification, targets=task, refs=task_ref, creates=none, deps=task]: use when an active Project member or global Admin asks for changes to an SR Agent result in needs_review; this requeues the same run in the same persistent thread; not for creating a replacement task, replacement run, new thread, or granting Product/Production authority; effect claim Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.; payload {task_ref,feedback,source?:{kind:'manual'|'message'|'signal'|'external',ref?,quote?,author_ref?,author_display?,occurred_at?,evidence_ref?}} | coordination.task.update [blocked, role=employee, domain=coordination, confirmation=not_required, effect=receipt_required:notification, targets=task, refs=task_ref, creates=none, deps=task]: use when apply one typed patch to an internal task through active Project membership or Admin override while retaining exactly one canonical personal Assignee; not for changing requester identity, clearing assignee_ref, removing Project assignment, adding task hierarchy, or mutating Product/Production rights; effect claim Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.; payload {task_ref,patch:{assignee_ref?:sr:person,title?,objective?,details_markdown?,status?:'backlog'|'planned'|'active'|'blocked'|'completed'|'cancelled',priority?:'P0'|'P1'|'P2'|'P3'|'P4'|'P5',due_at?,project_ref?,issue_ref?,context_url?},source?:{kind:'manual'|'message'|'signal'|'external',ref?,quote?,author_ref?,author_display?,occurred_at?,evidence_ref?}}; assignee_ref may change to one canonical person but never null; P0 is highest; project_ref may transfer only to another Project where actor and assignee are active members | coordination.task_proposal.accept [blocked, role=employee, domain=coordination, confirmation=not_required, effect=receipt_required:notification, targets=task_proposal|task|project, refs=proposal_ref|project_ref, creates=task, deps=task_proposal|plugin_user|project]: use when the original requester accepts one pending or deferred Meeting task proposal and atomically creates its source-grounded Coordination task; not for accepting an SR Agent result, editing proposal content, or accepting on behalf of another requester; effect claim Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.; payload {proposal_ref,project_ref,assignee_ref?,note?}; project_ref is always required and assignee_ref is required only when the immutable proposal has no resolved assignee | coordination.task_proposal.defer [blocked, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=task_proposal, refs=proposal_ref, creates=none, deps=task_proposal]: use when the original requester postpones one pending Meeting task proposal without creating a task; not for scheduling an automatic future acceptance or mutating proposal content; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {proposal_ref,reason?} | coordination.task_proposal.reject [blocked, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=task_proposal, refs=proposal_ref, creates=none, deps=task_proposal]: use when the original requester permanently rejects one pending or deferred Meeting task proposal; not for requesting a revised proposal or rejecting an SR Agent task result; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {proposal_ref,reason?} | coordination.task_proposal.request_changes [blocked, role=employee, domain=coordination, confirmation=not_required, effect=internal_only:none, targets=task_proposal, refs=proposal_ref, creates=none, deps=task_proposal]: use when the original requester closes one pending or deferred immutable Meeting proposal with explicit revision feedback; not for editing the proposal in place; a revised proposal is a new entity; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {proposal_ref,feedback} | coordination.whatsapp_history.import [active, role=admin, domain=coordination, confirmation=required, effect=internal_only:none, targets=message|operation_run, refs=source_ref, creates=operation_run, deps=none]: use when dry-run and, after explicit confirmation, atomically import one 1..25 item batch from one registered historical WhatsApp source with stable provider keys and immutable provenance digests; not for source parsing, unregistered chats, inferred identities or visibility, direct SQL/webhook writes, external WhatsApp sends, unbounded files, or mixing source snapshots; effect claim Prepare is a write-free dry-run. Execute may commit only the exact bounded historical WhatsApp batch, its digest-only import ledger, attachment metadata and canonical receipt. It never sends, replies, enriches, or contacts WhatsApp.; payload {source_ref,source_snapshot_digest,secret_policy_version,batch_ref,batch_index,batch_count,item_offset,source_total_count,messages:[{provider_message_key,external_conversation_id,external_sender_id,sender_display,occurred_at,payload_digest,source_content_digest,scanner_version,secret_disposition:'verbatim'|'redact'|'quarantine'|'exclude',body_markdown?,secret_scan?,false_positive_reason?,attachments?:[{provider_attachment_key,original_filename?,media_type?,size_bytes?,sha256?,metadata?}]}] (1..25)} | coordination.whatsapp_history.rollback [active, role=admin, domain=coordination, confirmation=required, effect=internal_only:none, targets=message|operation_run, refs=import_ref, creates=operation_run, deps=operation_run]: use when roll back one exact applied historical WhatsApp import batch while preserving its digest-only audit evidence; not for deleting pre-existing duplicates, erasing audit receipts, rolling back a batch with derived dependencies, or broad source reset; effect claim Rollback removes only rows inserted by the exact import receipt after proving that no Task, Signal, Artifact, link, attachment or other derived record depends on them. Exact duplicates that predated the import are never removed.; payload {import_ref,applied_receipt_ref,reason} | event.bulk_metadata_update [local-only, role=employee, domain=event, confirmation=required, effect=internal_only:none, targets=event, refs=event_refs, creates=none, deps=event]: use when apply one category value to a frozen set of 1-200 events; not for a live filter evaluated during Execute; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {event_refs:[1..200],field:'category',value} | event.cancel [active, role=employee, domain=event, confirmation=required, effect=receipt_required:email, targets=event, refs=event_ref, creates=none, deps=event]: use when cancel one event or its explicit future recurring scope; not for deleting a show template; effect claim Use only per-Event and per-recipient Main App delivery intents and their canonical stages; cancellation state alone proves no notification.; payload {event_ref,scope:'single_event'|'future_recurring_siblings',reason?} | event.create [active, role=employee, domain=event, confirmation=required, effect=internal_only:none, targets=event, refs=show_ref|location_ref, creates=event, deps=show|location]: use when create one dated event under an existing show at an existing location; not for creating the show or location dependency; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {show_ref,location_ref,starts_at RFC3339,duration_minutes?,event_type?} | event.create_recurring [active, role=employee, domain=event, confirmation=required, effect=internal_only:none, targets=event, refs=show_ref|location_ref, creates=event, deps=show|location]: use when create a bounded recurring event series for an existing show and location; not for creating a new show template; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {show_ref,location_ref,starts_at RFC3339,duration_minutes?,recurrence_rule:{frequency:'daily'|'weekly'|'biweekly'|'monthly'|'yearly',count:1..52}} | event.internal_note.set [active, role=employee, domain=event, confirmation=required, effect=internal_only:none, targets=event, refs=event_ref, creates=none, deps=event]: use when set or clear organizer-only internal Event notes; the user explicitly says internal or organizer-only; not for public Event copy, a public title, or ambiguous words such as Memo, Notiz, or Beschreibung without an explicit visibility; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {event_ref,value:string|null}; max 2000 characters | event.lineup_message.send [active, role=employee, domain=event, confirmation=required, effect=receipt_required:external_message, targets=event, refs=event_ref, creates=none, deps=event]: use when send one bounded message to the current active canonical Line-up of one exact Event; not for closing or changing the Event; supplying recipient IDs, Event title, location, duration, templates, channels, provider configuration, or a free external destination; effect claim Use only the exact Event's server-resolved active line-up and the separate Main App email/WhatsApp policy receipts. This action never changes or closes the Event.; payload {event_ref,message}; Main App resolves authorization, current active Line-up, Event details, product policy, email and WhatsApp intents | event.public_description.set [active, role=employee, domain=event, confirmation=required, effect=internal_only:none, targets=event, refs=event_ref, creates=none, deps=event]: use when set or clear the public Event description shown to customers; the user explicitly says public description or customer-facing text; not for organizer-only notes, the public title, or ambiguous words such as Memo, Notiz, or Beschreibung without an explicit visibility; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {event_ref,value:string|null}; max 10000 characters | event.public_title.set [active, role=employee, domain=event, confirmation=required, effect=internal_only:none, targets=event, refs=event_ref, creates=none, deps=event]: use when set or clear the Event-specific public title; the user explicitly says public title; not for the reusable Show title, public description, internal notes, or an ambiguous title request without Event scope; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {event_ref,value:string|null}; null clears the override, otherwise use 1-120 trimmed characters without control or Unicode line-separator characters | event.update [active, role=employee, domain=event, confirmation=required, effect=internal_only:none, targets=event, refs=event_ref, creates=none, deps=event]: use when change schedule, duration, or location on one identified event; not for any Event text, ticket-class, or provider-live changes; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {event_ref,changes:{starts_at RFC3339?,duration_minutes?,location_ref?},expected?} | export.generate [unsupported, role=admin, domain=finance, confirmation=required, effect=internal_only:none, targets=payout_case, refs=none, creates=none, deps=none]: use when never in V1; explain that no private export-file surface exists; not for bounded read-only finance queries; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload unsupported in V1; optional requested scope context {scope?} | host.set [active, role=employee, domain=booking, confirmation=required, effect=internal_only:none, targets=booking|slot, refs=booking_ref|slot_ref, creates=none, deps=booking]: use when set or clear host status for an identified booking or slot; not for booking a new comedian; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {booking_ref or slot_ref,is_host:boolean} | infrastructure.capacity_schedule [local-only, role=admin, domain=admin, confirmation=required, effect=internal_only:none, targets=subscription|operation_run, refs=none, creates=operation_run, deps=subscription]: use when schedule a bounded local Vercel-capacity simulation with mandatory auto-revert; not for calling Vercel or mutating Production infrastructure; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload local adapter only: {provider:'vercel',target_capacity,duration_hours:1..168,auto_revert:true,cost_limit_eur?} | invitation.create [active, role=employee, domain=booking, confirmation=required, effect=receipt_required:email, targets=slot|profile, refs=slot_ref|profile_ref, creates=application, deps=slot|profile]: use when create one open internal invitation Application for an identified profile and slot; not for directly booking the profile or claiming queued, sent, delivered, or received without the matching canonical Main App delivery stage; effect claim Use only the Main App-owned invitation email intent and its canonical stage; the open Application alone never proves sending, delivery, or receipt.; payload {slot_ref,profile_ref,role?:'comedian'|'host'}; role=host marks the invited Slot as host | location.create [active, role=employee, domain=event, confirmation=required, effect=internal_only:none, targets=location, refs=none, creates=location, deps=none]: use when create a canonical location from explicit venue data; not for creating an event at the new location in the same lifecycle; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {title,city,street?,zip?,region_ref?,seating_capacity?,contact_name?,contact_email?} | ownership_transfer.prepare [gated, role=admin, domain=finance, confirmation=required, effect=internal_only:none, targets=profile, refs=from_profile_ref|to_profile_ref, creates=none, deps=profile]: use when request a separately approved ownership-transfer preview; not for routine payout reads; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload separately gated: {from_profile_ref,to_profile_ref,payment_account_ref?} | payment_account.relink [gated, role=admin, domain=finance, confirmation=required, effect=internal_only:none, targets=profile, refs=profile_ref, creates=none, deps=profile]: use when request a separately approved Finance account relink; not for reading payout state; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload separately gated: {profile_ref} | payment_account.unlink_for_reonboarding [gated, role=admin, domain=finance, confirmation=required, effect=internal_only:none, targets=profile, refs=profile_ref, creates=none, deps=profile]: use when request a separately approved unlink for payment-account re-onboarding; not for routine account relinking; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload separately gated: {profile_ref} | plugin_user.add [blocked, role=admin, domain=admin, confirmation=required, effect=internal_only:none, targets=profile, refs=none, creates=none, deps=none]: use when describe the requested plugin principal after the access phase opens; not for Product-role grants; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload blocked until access phase: {email,role:'employee'|'admin'} | plugin_user.disable [blocked, role=admin, domain=admin, confirmation=required, effect=internal_only:none, targets=profile, refs=plugin_user_ref, creates=none, deps=profile]: use when disable a plugin principal after the access phase opens; not for changing Product access; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload blocked until access phase: {plugin_user_ref} | plugin_user.set_role [blocked, role=admin, domain=admin, confirmation=required, effect=internal_only:none, targets=profile, refs=plugin_user_ref, creates=none, deps=profile]: use when change a plugin principal role after the access phase opens; not for changing canonical Product roles; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload blocked until access phase: {plugin_user_ref,role:'employee'|'admin'} | product_access.change_role [active, role=admin, domain=admin, confirmation=required, effect=internal_only:none, targets=profile, refs=profile_ref, creates=none, deps=profile]: use when compare-and-set the canonical Product role set for one profile; not for plugin access roles; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {profile_ref,expected_roles:[...],new_role:'Comedian'|'Veranstalter'|'Administrator'|'Customer'} | product_access.grant [gated, role=admin, domain=admin, confirmation=required, effect=internal_only:none, targets=organization|profile, refs=profile_ref|organization_ref, creates=none, deps=organization|profile]: use when request a separately gated organization Product-access grant; not for plugin access; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload separately gated: {profile_ref,organization_ref,role} | provider_event.create [active, role=admin, domain=ticketing, confirmation=required, effect=receipt_required:provider_event, targets=event, refs=event_ref, creates=none, deps=event]: use when request creation of one Eventim or Eventbrite provider event through the existing canonical Main App previewProviderEventAction/applyProviderEventAction provisioning path; not for browser automation, a second provider client, arbitrary provider payloads, linking an existing provider event, or bypassing the Main App event-management and provider-create gates; effect claim Claim provider creation only when the canonical Main App returns a bounded provider receipt whose external event ID matches the persisted SR link and independent readback.; payload {event_ref,provider:'eventim'|'eventbrite',publication_mode?:'draft'|'public'}; runtime-gated by the actor-bound Main App preview/apply Product Command bridge and provider-create flags | provider_link.bulk_set [active, role=employee, domain=ticketing, confirmation=required, effect=internal_only:none, targets=event, refs=links[].event_ref, creates=none, deps=event]: use when apply a frozen exact provider-link manifest to up to 200 events; not for guessing low-confidence provider matches; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {links:[{event_ref,provider:'eventim'|'eventbrite',provider_event_ref}] up to 200} | provider_link.remove [active, role=employee, domain=ticketing, confirmation=required, effect=internal_only:none, targets=event, refs=event_ref, creates=none, deps=event]: use when remove one canonical provider link from an event; not for deleting the external provider event; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {event_ref,provider:'eventim'|'eventbrite'} | provider_link.set [active, role=employee, domain=ticketing, confirmation=required, effect=internal_only:none, targets=event, refs=event_ref, creates=none, deps=event]: use when set one exact canonical-to-provider event link; not for creating or mutating the external provider event; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {event_ref,provider:'eventim'|'eventbrite',provider_event_ref} | provider_ticketing.override_live [local-only, role=admin, domain=ticketing, confirmation=required, effect=internal_only:none, targets=ticket_class, refs=ticket_area_ref, creates=none, deps=ticket_class]: use when explicitly simulate a direct provider-live capacity override in the local adapter; not for canonical ticket-class configuration; use ticketing.ticket_class.update; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload local adapter only: {ticket_area_ref,capacity>=0} | show.create [active, role=employee, domain=event, confirmation=required, effect=internal_only:none, targets=show, refs=none, creates=show, deps=none]: use when create one reusable show series/template; not for creating its dated event occurrences; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {title,owner_ref?,defaults:{active?}?} | show.create_with_events [active, role=employee, domain=event, confirmation=required, effect=internal_only:none, targets=show|event, refs=location_ref|event_manifest.location_ref, creates=show, deps=location]: use when atomically create a new show plus a bounded event series at an existing location; not for adding events to an existing show; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {title,location_ref,starts_at RFC3339,duration_minutes?,count:1..52,recurrence:{frequency,count}} or {show_manifest,event_manifest,recurrence} | slot.create [active, role=employee, domain=booking, confirmation=required, effect=internal_only:none, targets=slot, refs=event_ref, creates=slot, deps=event]: use when create one bounded lineup slot on an existing event; not for booking a comedian into the slot; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {event_ref,starts_at RFC3339?,duration_minutes:1..240,mode:'private'|'public',fee_eur?} | slot.fee.set [active, role=employee, domain=booking, confirmation=required, effect=internal_only:none, targets=slot, refs=slot_refs, creates=none, deps=slot]: use when change the EUR fee of an exact frozen set of existing slots, occupied or unoccupied, with Event management permission; not for creating slots, changing Show defaults, paying invoices, or changing financially closed bookings; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {slot_refs:[1..200 unique canonical sr:slot IDs],fee_eur:0..9999.99 with at most 2 decimal places}; use Event lineup/booking reads to identify every target; confirm the before/after fees | spot_mode.set [active, role=employee, domain=booking, confirmation=required, effect=internal_only:none, targets=slot, refs=slot_refs, creates=none, deps=slot]: use when set private/public mode on a frozen set of slots; not for creating slots; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {slot_refs:[1..200],mode:'private'|'public'} | ticketing.canonical_price.set [active, role=employee, domain=ticketing, confirmation=required, effect=internal_only:none, targets=event, refs=event_ref, creates=none, deps=event]: use when set the canonical event price in cents; not for a provider-live override; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {event_ref,price_cents>=0} | ticketing.contingent.set [active, role=employee, domain=ticketing, confirmation=required, effect=internal_only:none, targets=event, refs=event_ref, creates=none, deps=event]: use when set the canonical ticket contingent for one event; not for changing one ticket class; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {event_ref,contingent:1..32767} | ticketing.sync.request [active, role=employee, domain=ticketing, confirmation=required, effect=queued:provider_sync, targets=event|operation_run, refs=event_ref, creates=operation_run, deps=event]: use when enqueue an idempotent canonical capacity-sync run for one future event whose capacity sync setting is enabled; not for changing sync settings or forcing a provider write when no eligible sync job can be enqueued; effect claim Success proves only that one canonical sync job was enqueued and read back; never claim provider state changed until a later provider receipt and readback prove it.; payload {event_ref,retry_scope?:'failed'} | ticketing.sync_settings.set [active, role=employee, domain=ticketing, confirmation=required, effect=internal_only:none, targets=event, refs=event_ref, creates=none, deps=event]: use when change canonical price/capacity sync settings for one event; not for requesting an immediate sync run; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {event_ref,price_sync?,capacity_sync?,canonical_price_cents?}; include at least one setting; enabling Price Sync requires a canonical price | ticketing.ticket_class.create [active, role=employee, domain=ticketing, confirmation=required, effect=internal_only:none, targets=ticket_class, refs=event_ref, creates=ticket_class, deps=event]: use when create a canonical SR ticket class on one event without provisioning an external Stripe product or price; not for provider-live capacity overrides or Stripe catalog provisioning; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {event_ref,name,price_cents>=0,capacity>=1,active?} | ticketing.ticket_class.update [active, role=employee, domain=ticketing, confirmation=required, effect=internal_only:none, targets=ticket_class, refs=class_ref, creates=none, deps=ticket_class]: use when change canonical SR ticket-class configuration; price changes are executable only while the class has no Stripe product/price IDs; not for direct provider-live capacity override or Stripe price rotation; use the canonical Main App Stripe writer for a Stripe-backed price; effect claim Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.; payload {class_ref,name?,price_cents?,capacity?,active?}; include at least one change"
+          },
+          "payload": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 96
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/__schema0"
+            },
+            "description": "Strict operation-specific Product payload. Use the exact payload guide published on the selected operation; arbitrary SQL, URLs, code, and provider credentials are forbidden. Invalid payloads return missing_fields, unexpected_fields, and expected_shapes."
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "operation",
+          "payload"
+        ],
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "output_schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "2026-07-27"
+          },
+          "audit_ref": {
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 256,
+            "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "description": "Full RFC 3339 timestamp with time and UTC offset, for example 2026-07-30T20:00:00+02:00 or 2026-07-30T18:00:00Z. Date-only values such as 2026-07-30 are invalid."
+          },
+          "coverage": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "complete",
+                  "partial",
+                  "unknown"
+                ]
+              },
+              "sources": {
+                "default": [],
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              },
+              "missing": {
+                "default": [],
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              }
+            },
+            "required": [
+              "status",
+              "sources",
+              "missing"
+            ],
+            "additionalProperties": false
+          },
+          "warnings": {
+            "default": [],
+            "maxItems": 32,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 96
+                },
+                "message": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                },
+                "details": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "blocked",
+              "invalid",
+              "permission_denied",
+              "prepared",
+              "unsupported_operation"
+            ]
+          },
+          "domain": {
+            "type": "string",
+            "enum": [
+              "event",
+              "ticketing",
+              "booking",
+              "finance",
+              "admin",
+              "coordination"
+            ]
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "admin_session.activate",
+              "admin_session.revoke",
+              "application.accept",
+              "application.reject",
+              "batch.execute",
+              "booking.move",
+              "booking.remove",
+              "comedian.book",
+              "communication.message.acknowledge",
+              "communication.message.archive",
+              "communication.message.complete",
+              "communication.message.reply",
+              "communication.message.send",
+              "coordination.artifact.create",
+              "coordination.artifact.delete",
+              "coordination.artifact.grant.add",
+              "coordination.artifact.grant.revoke",
+              "coordination.artifact.link.add",
+              "coordination.artifact.link.remove",
+              "coordination.artifact.update",
+              "coordination.artifact.upload_finalize",
+              "coordination.artifact.version.create",
+              "coordination.attachment.upload_finalize",
+              "coordination.attachment.upload_prepare",
+              "coordination.entity_context_link.add",
+              "coordination.entity_context_link.remove",
+              "coordination.priority_item.complete",
+              "coordination.priority_item.create",
+              "coordination.priority_item.update",
+              "coordination.project.create",
+              "coordination.project.link.add",
+              "coordination.project.link.remove",
+              "coordination.project.member.add",
+              "coordination.project.member.remove",
+              "coordination.project.update",
+              "coordination.task.cancel",
+              "coordination.task.comment.create",
+              "coordination.task.complete",
+              "coordination.task.create",
+              "coordination.task.link.add",
+              "coordination.task.link.remove",
+              "coordination.task.review.accept",
+              "coordination.task.review.reject",
+              "coordination.task.update",
+              "coordination.task_proposal.accept",
+              "coordination.task_proposal.defer",
+              "coordination.task_proposal.reject",
+              "coordination.task_proposal.request_changes",
+              "coordination.whatsapp_history.import",
+              "coordination.whatsapp_history.rollback",
+              "event.bulk_metadata_update",
+              "event.cancel",
+              "event.create",
+              "event.create_recurring",
+              "event.internal_note.set",
+              "event.lineup_message.send",
+              "event.public_description.set",
+              "event.public_title.set",
+              "event.update",
+              "export.generate",
+              "host.set",
+              "infrastructure.capacity_schedule",
+              "invitation.create",
+              "location.create",
+              "ownership_transfer.prepare",
+              "payment_account.relink",
+              "payment_account.unlink_for_reonboarding",
+              "plugin_user.add",
+              "plugin_user.disable",
+              "plugin_user.set_role",
+              "product_access.change_role",
+              "product_access.grant",
+              "provider_event.create",
+              "provider_link.bulk_set",
+              "provider_link.remove",
+              "provider_link.set",
+              "provider_ticketing.override_live",
+              "show.create",
+              "show.create_with_events",
+              "slot.create",
+              "slot.fee.set",
+              "spot_mode.set",
+              "ticketing.canonical_price.set",
+              "ticketing.contingent.set",
+              "ticketing.sync.request",
+              "ticketing.sync_settings.set",
+              "ticketing.ticket_class.create",
+              "ticketing.ticket_class.update"
+            ]
+          },
+          "confirmation_policy": {
+            "type": "string",
+            "enum": [
+              "required",
+              "not_required"
+            ],
+            "description": "Server-owned registry policy. required means wait for a new explicit user confirmation before Execute; not_required means call Execute immediately after Prepare without another user turn."
+          },
+          "execution_ready": {
+            "type": "boolean",
+            "description": "True only for a prepared action whose token may be passed to Execute under its confirmation policy."
+          },
+          "manifest": {
+            "type": "object",
+            "properties": {
+              "manifest_ref": {
+                "type": "string",
+                "minLength": 7,
+                "maxLength": 256,
+                "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+              },
+              "domain": {
+                "type": "string",
+                "enum": [
+                  "event",
+                  "ticketing",
+                  "booking",
+                  "finance",
+                  "admin",
+                  "coordination"
+                ]
+              },
+              "operation": {
+                "type": "string",
+                "enum": [
+                  "admin_session.activate",
+                  "admin_session.revoke",
+                  "application.accept",
+                  "application.reject",
+                  "batch.execute",
+                  "booking.move",
+                  "booking.remove",
+                  "comedian.book",
+                  "communication.message.acknowledge",
+                  "communication.message.archive",
+                  "communication.message.complete",
+                  "communication.message.reply",
+                  "communication.message.send",
+                  "coordination.artifact.create",
+                  "coordination.artifact.delete",
+                  "coordination.artifact.grant.add",
+                  "coordination.artifact.grant.revoke",
+                  "coordination.artifact.link.add",
+                  "coordination.artifact.link.remove",
+                  "coordination.artifact.update",
+                  "coordination.artifact.upload_finalize",
+                  "coordination.artifact.version.create",
+                  "coordination.attachment.upload_finalize",
+                  "coordination.attachment.upload_prepare",
+                  "coordination.entity_context_link.add",
+                  "coordination.entity_context_link.remove",
+                  "coordination.priority_item.complete",
+                  "coordination.priority_item.create",
+                  "coordination.priority_item.update",
+                  "coordination.project.create",
+                  "coordination.project.link.add",
+                  "coordination.project.link.remove",
+                  "coordination.project.member.add",
+                  "coordination.project.member.remove",
+                  "coordination.project.update",
+                  "coordination.task.cancel",
+                  "coordination.task.comment.create",
+                  "coordination.task.complete",
+                  "coordination.task.create",
+                  "coordination.task.link.add",
+                  "coordination.task.link.remove",
+                  "coordination.task.review.accept",
+                  "coordination.task.review.reject",
+                  "coordination.task.update",
+                  "coordination.task_proposal.accept",
+                  "coordination.task_proposal.defer",
+                  "coordination.task_proposal.reject",
+                  "coordination.task_proposal.request_changes",
+                  "coordination.whatsapp_history.import",
+                  "coordination.whatsapp_history.rollback",
+                  "event.bulk_metadata_update",
+                  "event.cancel",
+                  "event.create",
+                  "event.create_recurring",
+                  "event.internal_note.set",
+                  "event.lineup_message.send",
+                  "event.public_description.set",
+                  "event.public_title.set",
+                  "event.update",
+                  "export.generate",
+                  "host.set",
+                  "infrastructure.capacity_schedule",
+                  "invitation.create",
+                  "location.create",
+                  "ownership_transfer.prepare",
+                  "payment_account.relink",
+                  "payment_account.unlink_for_reonboarding",
+                  "plugin_user.add",
+                  "plugin_user.disable",
+                  "plugin_user.set_role",
+                  "product_access.change_role",
+                  "product_access.grant",
+                  "provider_event.create",
+                  "provider_link.bulk_set",
+                  "provider_link.remove",
+                  "provider_link.set",
+                  "provider_ticketing.override_live",
+                  "show.create",
+                  "show.create_with_events",
+                  "slot.create",
+                  "slot.fee.set",
+                  "spot_mode.set",
+                  "ticketing.canonical_price.set",
+                  "ticketing.contingent.set",
+                  "ticketing.sync.request",
+                  "ticketing.sync_settings.set",
+                  "ticketing.ticket_class.create",
+                  "ticketing.ticket_class.update"
+                ]
+              },
+              "targets": {
+                "maxItems": 200,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 7,
+                  "maxLength": 256,
+                  "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+                }
+              },
+              "before": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              "after": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              "side_effects": {
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                }
+              },
+              "blockers": {
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 96
+                    },
+                    "message": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 2000
+                    },
+                    "details": {
+                      "$ref": "#/$defs/__schema0"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "manifest_ref",
+              "domain",
+              "operation",
+              "targets",
+              "before",
+              "after",
+              "side_effects",
+              "blockers"
+            ],
+            "additionalProperties": false
+          },
+          "prepare_token": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 512
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "description": "Full RFC 3339 timestamp with time and UTC offset, for example 2026-07-30T20:00:00+02:00 or 2026-07-30T18:00:00Z. Date-only values such as 2026-07-30 are invalid."
+          },
+          "confirmation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "error_code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "error_code": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "result_status": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "retryable": {
+                "type": "boolean"
+              },
+              "details": {
+                "description": "Safe machine-readable diagnostics such as missing_fields, unexpected_fields, expected_shapes, or reconciliation instructions. Never contains secrets or raw Product rows.",
+                "$ref": "#/$defs/__schema0"
+              }
+            },
+            "required": [
+              "error_code",
+              "result_status",
+              "message",
+              "retryable"
+            ],
+            "additionalProperties": false,
+            "description": "Machine-readable evidence for a typed non-success result. result_status matches the correlated observer trace; retryable never implies that an action is safe to replay with a different idempotency key."
+          },
+          "blockers": {
+            "maxItems": 32,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 96
+                },
+                "message": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                },
+                "details": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "schema_version",
+          "audit_ref",
+          "observed_at",
+          "coverage",
+          "warnings",
+          "status",
+          "domain",
+          "operation",
+          "confirmation_policy",
+          "execution_ready",
+          "blockers"
+        ],
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "sr_action_execute": {
+      "metadata": {
+        "title": "Execute a prepared Standup Republic action",
+        "description": "Execute exactly one previously prepared active action after authorization and state revalidation. If Prepare returned confirmation_policy=required, call only after explicit user confirmation; if it returned not_required, call immediately without another user turn. Pass the exact opaque prepare_token plus a caller-generated stable 16-128 character idempotency_key using letters, digits, dot, underscore, tilde, or hyphen; never use manifest_ref as the idempotency key, and likewise never use prepare_token, receipt_ref, or another sr: reference. Reuse the same key only for a retry of the same execution. A succeeded action proves only the operation's canonical internal contract: requested proves durable Main App outbox acceptance only; claim provider acceptance only from post_check.external_effects state provider_accepted, sending only from sent, delivery only from delivered, and reading only from read, each with canonical evidence. Explicitly state not_requested_by_policy, requested, queued, processing, provider_unknown, failed, or unknown; never paraphrase them as sent, delivered, received, published, shared, or successfully dispatched. For an unknown transport outcome, reconcile operation_run_ref with sr_entity_get sections status, receipt, and post_check; never blind-retry with a new key. Gated, blocked, local-only, and unsupported operations remain non-executable in Production.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        }
+      },
+      "input_schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "prepare_token": {
+            "type": "string",
+            "minLength": 32,
+            "maxLength": 512,
+            "description": "Opaque prepare_token returned by the exact sr_action_prepare call being confirmed. Do not use manifest_ref instead."
+          },
+          "idempotency_key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "description": "Caller-generated stable retry key for this one confirmed execution: 16-128 characters using only letters, digits, dot, underscore, tilde, or hyphen. Example: gp041-show-create-20260723. Reuse the same key only when retrying the same execution. Never copy manifest_ref, prepare_token, receipt_ref, or any sr:... reference into this field."
+          }
+        },
+        "required": [
+          "prepare_token",
+          "idempotency_key"
+        ],
+        "additionalProperties": false
+      },
+      "output_schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "2026-07-27"
+          },
+          "audit_ref": {
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 256,
+            "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "description": "Full RFC 3339 timestamp with time and UTC offset, for example 2026-07-30T20:00:00+02:00 or 2026-07-30T18:00:00Z. Date-only values such as 2026-07-30 are invalid."
+          },
+          "coverage": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "complete",
+                  "partial",
+                  "unknown"
+                ]
+              },
+              "sources": {
+                "default": [],
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              },
+              "missing": {
+                "default": [],
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                }
+              }
+            },
+            "required": [
+              "status",
+              "sources",
+              "missing"
+            ],
+            "additionalProperties": false
+          },
+          "warnings": {
+            "default": [],
+            "maxItems": 32,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 96
+                },
+                "message": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                },
+                "details": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "failed",
+              "partially_succeeded",
+              "pending",
+              "rejected",
+              "succeeded"
+            ]
+          },
+          "receipt_ref": {
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 256,
+            "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+          },
+          "operation_run_ref": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 7,
+                "maxLength": 256,
+                "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "items": {
+            "maxItems": 200,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "target_ref": {
+                  "type": "string",
+                  "minLength": 7,
+                  "maxLength": 256,
+                  "pattern": "^sr:[a-z][a-z0-9_]*:[A-Za-z0-9._~-]+$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "succeeded",
+                    "failed",
+                    "skipped"
+                  ]
+                },
+                "error_code": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 128
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "summary": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                }
+              },
+              "required": [
+                "target_ref",
+                "status",
+                "error_code",
+                "summary"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "post_check": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/__schema0"
+            }
+          },
+          "replayed": {
+            "default": false,
+            "description": "True only when this response replays the already committed canonical receipt for the same prepare token and idempotency key; no second mutation ran.",
+            "type": "boolean"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "error_code": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "result_status": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "retryable": {
+                "type": "boolean"
+              },
+              "details": {
+                "description": "Safe machine-readable diagnostics such as missing_fields, unexpected_fields, expected_shapes, or reconciliation instructions. Never contains secrets or raw Product rows.",
+                "$ref": "#/$defs/__schema0"
+              }
+            },
+            "required": [
+              "error_code",
+              "result_status",
+              "message",
+              "retryable"
+            ],
+            "additionalProperties": false,
+            "description": "Machine-readable evidence for a typed non-success result. result_status matches the correlated observer trace; retryable never implies that an action is safe to replay with a different idempotency key."
+          }
+        },
+        "required": [
+          "schema_version",
+          "audit_ref",
+          "observed_at",
+          "coverage",
+          "warnings",
+          "status",
+          "receipt_ref",
+          "operation_run_ref",
+          "items",
+          "post_check",
+          "replayed",
+          "error_code"
+        ],
+        "additionalProperties": false,
+        "$defs": {
+          "__schema0": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

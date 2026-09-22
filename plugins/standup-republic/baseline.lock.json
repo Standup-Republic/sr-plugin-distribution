@@ -1,0 +1,44 @@
+{
+  "schema_version": "sr_plugin_baseline_lock_v1",
+  "skill_bundle_version": "0.8.0-business-workspace.1",
+  "content_sha256_excluding_lock": "4c5b0f880e7ff6d4adf2e175350d9e8b72123cac88c0670557b403059a2cefb0",
+  "mcp_contract": {
+    "contract_version": "2026-07-23",
+    "source_repository_commit": "9c05babfc1c1c67db2fd76c11dffc46b393b7424",
+    "source_contract_sha256": "32948d3cd706c4114d000ffd1e5c9e34b2a0ffaa5378b751699e3b3bedf9e001",
+    "public_tool_count": 6,
+    "public_tools": [
+      "sr_entity_resolve",
+      "sr_entity_get",
+      "sr_entity_query",
+      "sr_runtime_health",
+      "sr_action_prepare",
+      "sr_action_execute"
+    ],
+    "production_endpoint": "https://standup-republic-sr-mcp-v2.standup-republic.workers.dev/mcp",
+    "production_execute": "enabled_active_operations_only",
+    "action_availability": {
+      "active": 54,
+      "gated": 5,
+      "blocked": 4,
+      "local-only": 3,
+      "unsupported": 1
+    },
+    "active_product_required": 25,
+    "active_coordination_not_required": 26,
+    "active_composite_required": 2,
+    "active_composite_not_required": 1,
+    "coordination_auth_runtime": {
+      "tools_contract_commit": "9c05babfc1c1c67db2fd76c11dffc46b393b7424",
+      "deployed_worker_source_commit": "9c05babfc1c1c67db2fd76c11dffc46b393b7424",
+      "active_worker_version": "3c37456e-890a-4542-9966-685932c532f6",
+      "rollback_worker_version": "f2546cf4-1e8f-4e0e-889b-0f5dbceaf89e",
+      "runtime_commit": "d348be7d210b446c423879d50c2667e7423a06bb",
+      "runtime_contract_sha256": "a1456c47c77c8509b9e764a197a612733deacfbf7deae8ea59022afd527e1138",
+      "public_schema_sha256": "35f1a1847f2486d5edcc1bb3212571e343ad51c4906f0dc6f093a6a163dcd5ac",
+      "employee_oauth_ready": false,
+      "availability": "verify_at_execution_time",
+      "authentication": "interactive_oauth_fail_closed_aliases"
+    }
+  }
+}

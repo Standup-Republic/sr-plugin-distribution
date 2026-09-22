@@ -1,0 +1,4 @@
+interface:
+  display_name: "SR Support"
+  short_description: "SR-Supportfälle fundiert untersuchen und beantworten"
+  default_prompt: "Use $sr-support to investigate and answer this Standup Republic support case."

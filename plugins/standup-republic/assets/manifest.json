@@ -1,0 +1,64 @@
+{
+  "schema_version": "sr_listing_assets_v1",
+  "visible_name": "StandUp Republic Internal",
+  "positioning": "SR Assistant",
+  "plugin_id": "standup-republic",
+  "primary_color": "#070707",
+  "source_repository": "Standup-Republic/app",
+  "verified_at_source_head": "e83702cc7c936e1096b1475d0b3aec72d5da3c71",
+  "brand_resource_manifest": "../skills/sr-plugin/assets/brand/manifest.json",
+  "assets": [
+    {
+      "file": "logo.jpg",
+      "usage": "plugin_logo",
+      "media_type": "image/jpeg",
+      "dimensions": "256x256",
+      "sha256": "a301221db30362dd134c3866a6147c7f5c92ef1f58ed359346f26478cf8f0cae",
+      "source_path": "src/app/icon.jpg"
+    },
+    {
+      "file": "composer-icon.jpg",
+      "usage": "composer_icon",
+      "media_type": "image/jpeg",
+      "dimensions": "256x256",
+      "sha256": "a301221db30362dd134c3866a6147c7f5c92ef1f58ed359346f26478cf8f0cae",
+      "source_path": "src/app/icon.jpg"
+    },
+    {
+      "file": "workspace-custom-mcp-icon.png",
+      "usage": "workspace_custom_mcp_app_icon",
+      "media_type": "image/png",
+      "dimensions": "256x256",
+      "byte_size": 4021,
+      "sha256": "c974e3ff95c6fe45303dd90e3c7eae4339d5cb4103dcb0b41a9ff730301de491",
+      "source_path": "src/app/icon.jpg",
+      "source_asset_sha256": "a301221db30362dd134c3866a6147c7f5c92ef1f58ed359346f26478cf8f0cae",
+      "derivation": "Deterministic ImageMagick PNG8 export with stripped metadata and an opaque grayscale palette; decoded source pixels preserved exactly.",
+      "pixel_comparison": "RMSE 0 (normalized 0)",
+      "visual_review": {
+        "status": "passed",
+        "doodle_free": true,
+        "observed": "Unchanged black StandUp Republic wordmark and star arc on a white square; no overlays, added marks, doodles, crop, or invented content."
+      },
+      "workspace_gate": {
+        "format": "PNG",
+        "minimum_dimensions": "256x256",
+        "maximum_bytes_exclusive": 10000,
+        "status": "passes"
+      }
+    },
+    {
+      "file": "standup-republic-wordmark.svg",
+      "usage": "official_wordmark",
+      "media_type": "image/svg+xml",
+      "dimensions": "220x112",
+      "sha256": "f6bbc40f84a430c8c36aa010f1055c736253ffe254a9c34aa2adce0b78e730ae",
+      "source_path": "public/assets/images/logo/logo.svg"
+    }
+  ],
+  "screenshots": {
+    "status": "pending_real_capture",
+    "capture_contract": "../docs/listing/screenshots/README.md",
+    "manifest_fragment": "../docs/listing/screenshots/manifest-fragment.after-capture.json"
+  }
+}

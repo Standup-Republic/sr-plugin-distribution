@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "standup-republic": {
+      "type": "http",
+      "url": "https://plugin-mcp.sr-admin.tools/mcp",
+      "auth": "oauth",
+      "startup_timeout_sec": 45,
+      "tool_timeout_sec": 60,
+      "http_headers": {
+        "X-SR-Plugin-Version": "0.8.8+distribution.1"
+      }
+    }
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "StandUp Republic Internal"
+  short_description: "SR Assistant for employees"
+  default_prompt: "Use $sr-plugin as the SR Assistant to handle this StandUp Republic request directly."

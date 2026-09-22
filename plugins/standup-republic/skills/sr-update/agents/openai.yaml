@@ -1,0 +1,4 @@
+interface:
+  display_name: "SR Update"
+  short_description: "Kanonischen SR-Status kompakt aktualisieren"
+  default_prompt: "Use $sr-update to give me a fresh Standup Republic status update."

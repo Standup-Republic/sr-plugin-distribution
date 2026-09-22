@@ -1,0 +1,4 @@
+interface:
+  display_name: "SR Actions"
+  short_description: "SR-Änderungen sicher vorbereiten und ausführen"
+  default_prompt: "Use $sr-actions to handle this Standup Republic change safely."

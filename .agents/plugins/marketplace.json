@@ -1,0 +1,21 @@
+{
+  "name": "standup-republic-private",
+  "interface": {
+    "displayName": "StandUp Republic Private"
+  },
+  "plugins": [
+    {
+      "name": "standup-republic",
+      "pluginId": "Plugin_967097d2669c81919056405b8f1640d2",
+      "source": {
+        "source": "local",
+        "path": "./plugins/standup-republic"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Business & Operations"
+    }
+  ]
+}

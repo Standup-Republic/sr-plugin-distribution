@@ -1,0 +1,47 @@
+{
+  "schema_version": "sr_brand_assets_v1",
+  "visible_name": "StandUp Republic Internal",
+  "positioning": "SR Assistant",
+  "plugin_id": "standup-republic",
+  "primary_color": "#070707",
+  "source_repository": "Standup-Republic/app",
+  "verified_at_source_head": "e83702cc7c936e1096b1475d0b3aec72d5da3c71",
+  "assets": [
+    {
+      "file": "standup-republic-wordmark.svg",
+      "media_type": "image/svg+xml",
+      "dimensions": "220x112",
+      "appearance": "#070707 wordmark on transparent background",
+      "sha256": "f6bbc40f84a430c8c36aa010f1055c736253ffe254a9c34aa2adce0b78e730ae",
+      "source_path": "public/assets/images/logo/logo.svg",
+      "source_commit": "1472c251f7667b13257aa8f3c4417fba6eaa9d2e"
+    },
+    {
+      "file": "standup-republic-wordmark.png",
+      "media_type": "image/png",
+      "dimensions": "157x80",
+      "appearance": "white wordmark on transparent background",
+      "sha256": "b4ced19302b4ce0a9a412ee6a4034e36504239ee463686eadab22d0925d9b4d5",
+      "source_path": "public/assets/images/logo/Logo.png",
+      "source_commit": "318e53226cef38a6a859fa0753310e6e13f7b1b1"
+    },
+    {
+      "file": "standup-republic-wordmark-white.png",
+      "media_type": "image/png",
+      "dimensions": "120x62",
+      "appearance": "compact white wordmark on transparent background",
+      "sha256": "2cddb292c9600aa96903020bf2a5d30d8cd225eeb76f9490ad00df77e338a18a",
+      "source_path": "public/assets/images/logo/logosr-white.png",
+      "source_commit": "e4e93f1bf673b70f117a1cf36fbe3450de790d92"
+    },
+    {
+      "file": "standup-republic-icon.jpg",
+      "media_type": "image/jpeg",
+      "dimensions": "256x256",
+      "appearance": "#070707 wordmark and stars on white square",
+      "sha256": "a301221db30362dd134c3866a6147c7f5c92ef1f58ed359346f26478cf8f0cae",
+      "source_path": "src/app/icon.jpg",
+      "source_commit": "489909dbd12ef03c6ebe430b3a1ec2a47df0bb29"
+    }
+  ]
+}

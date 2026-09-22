@@ -1,0 +1,9 @@
+{
+  "interface": {
+    "screenshots": [
+      "./assets/screenshots/screenshot-event-overview.png",
+      "./assets/screenshots/screenshot-payout-diagnosis.png",
+      "./assets/screenshots/screenshot-support-draft.png"
+    ]
+  }
+}

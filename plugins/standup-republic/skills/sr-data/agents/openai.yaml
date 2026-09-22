@@ -1,0 +1,4 @@
+interface:
+  display_name: "SR Data"
+  short_description: "SR-Daten zuverlässig lesen und erklären"
+  default_prompt: "Use $sr-data to answer this Standup Republic data question."

@@ -3,7 +3,7 @@
 ## Use When
 
 - someone cannot log in, see an event, apply, book, or perform an expected task;
-- a profile, organization membership, Product role, or plugin role is disputed;
+- a profile, organization membership, Product role, or canonical Staff role is disputed;
 - the report says “no access” without establishing which access layer failed.
 
 ## Establish
@@ -22,13 +22,12 @@
   create or merge identities implicitly.
 - **Product role absent or wrong:** explain the observed role and route only a
   supported Product-access change through SR Actions.
-- **Plugin role issue:** do not substitute a Product-role action. Current
-  plugin-user add/role/disable operations remain blocked. Report that boundary.
-- **Employee OAuth issue:** verify runtime readiness separately from the exact
-  user's allowlist/status/role/scopes and completed OAuth session. An active
-  email alias may map only to that same authoritative person; pending/revoked
-  aliases and subject/email mismatches fail closed. An operator credential or
-  Site HMAC request is not a workaround.
+- **Canonical role issue:** inspect current SR Staff identity and the exact
+  resource permission; there is no separate native plugin role to repair.
+- **Employee OAuth issue:** separate loaded tools, completed personal SR login,
+  active Staff membership, current session and the exact connected adapter.
+  Normal Admins are not globally read-only. Missing adapters are not denied
+  Web rights. Do not use operator credentials or Site HMAC as a workaround.
 - **Plugin Skills loaded, MCP missing:** say that the Plugin content is loaded
   but its SR connection is not mounted. Do not call this an OAuth denial and do
   not recommend repeated restarts or reinstalls.

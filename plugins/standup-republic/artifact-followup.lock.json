@@ -1,12 +1,12 @@
 {
   "schema_version": "sr_plugin_followup_lock_v1",
-  "skill_bundle_version": "0.8.8+distribution.1-personal-pro.1",
-  "release_status": "public_distribution_release",
-  "content_sha256_excluding_lock": "237424a0f49a7612b30ecffee2ad33b0b68f01c31a240bbde49f147101d8c895",
+  "skill_bundle_version": "0.9.0-personal-pro.1",
+  "release_status": "native_oauth_release_candidate",
+  "content_sha256_excluding_lock": "3ac2cb535f90f71ac960d6867a600ee9dad73225e21c8a68d3bb5ea321a04ef6",
   "mcp_contract": {
     "contract_version": "2026-07-27",
-    "source_repository_commit": "02c3aafc34f1df9151e5571729b9a91e791adcf8",
-    "source_contract_sha256": "786b7f0f29eb9f6c4becbd15d5fb299ce77ce46bff67f63f43044c7d95455dca",
+    "source_repository_commit": "376e374f4177d63bc4bf4c0355993a1145cb5def",
+    "source_contract_sha256": "e3fe47e8bb923d2f7f27b82d6cd6d8cb439741f361c0f2a0d7f15e8f225705ea",
     "public_tool_count": 6,
     "public_tools": [
       "sr_entity_resolve",
@@ -20,16 +20,16 @@
     "production_execute": "enabled_active_operations_only"
   },
   "candidate_owner": {
-    "tools_commit": "02c3aafc34f1df9151e5571729b9a91e791adcf8",
+    "tools_commit": "376e374f4177d63bc4bf4c0355993a1145cb5def",
     "public_tool_count": 6,
     "live_mutation": false,
     "personal_pro_contract": {
       "package_identity": "standup-republic",
       "visible_identity": "StandUp Republic Internal",
-      "candidate_version": "0.8.8+distribution.1",
+      "candidate_version": "0.9.0",
       "canonical_employee_endpoint": "https://plugin-mcp.sr-admin.tools/mcp",
       "workspace_app_dependency": false,
-      "personal_pro_connect_status": "production_resource_live_employee_reconnect_required",
+      "personal_pro_connect_status": "native_supabase_source_candidate_not_deployment_proof",
       "business_workspace_candidate": "0.8.3-rc.2",
       "capability_fork": false
     }

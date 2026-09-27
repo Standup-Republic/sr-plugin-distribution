@@ -49,17 +49,12 @@ receipt and no second mutation.
 
 ## Current Execute State
 
-The package lock records `enabled_active_operations_only`. The generated
-registry contains 64 `active`, five `gated`, four `blocked`, three `local-only`,
-and one `unsupported` operation. The 26 active Product operations
-ordinarily return `confirmation_policy=required`; of the thirty-five active
-Coordination operations, Artifact deletion and adding an Artifact audience
-grant return `required` while the other thirty-three return `not_required`.
-The three composite
-Admin-policy operations are activation (`required`), revocation
-(`not_required`), and related-action batch (`required`). A current temporary
-Admin session may relax only an eligible required manifest through the policy
-returned by Prepare. Only active operations can Execute.
+The source candidate contains an explicit named action catalog. Discover live
+adapter availability and exact payloads before Prepare; registry membership is
+not authority to Execute. Both admitted Staff tiers use canonical Web rights.
+There is no normal-Admin write ban or temporary plugin Admin-session bypass.
+Follow the actual manifest confirmation policy. Retired coordination and
+plugin-user administration operations are not available.
 
 For operations with an external delivery stage, an internal committed entity
 or queued outbox item is not delivery evidence. Report only the highest stage

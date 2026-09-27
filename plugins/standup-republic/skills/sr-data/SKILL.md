@@ -35,24 +35,19 @@ error.
 
 ## Resolve The Direct Object
 
-Identify the object the user actually wants to read or change, not only its
-parent or neighboring records. The current resolver connects Product types
-`event`, `location`, `profile`, and `show`, plus RC Coordination types
-`artifact`, `plugin_user`, `project`, `message`, `priority_item`, and the legacy
-`attachment` alias when that authenticated runtime is available. Route
-internal Coordination outcomes through SR
-Coordination. Acquire other direct refs through an answer-ready Query or a
-connected parent's Get section: slots through
-`available_slots_v1`; bookings through `bookings_v1`; applications through
-`open_applications_v1`; ticket classes through one event Get with `ticketing`,
-`prices`, and `capacity`. If the required direct ref is absent from these
-returned projections, stop and report the gap—never send an unconnected type
-to Resolve or substitute the parent ref. Priority items use distinct
-`sr:priority_item:<uuid>` refs and require current Main App Admin authority;
-Project membership does not grant board access. Archived `sr:task:*` refs
-return `coordination_task_retired` (410). Known Coordination `signal`, `link`,
-`activity_event`, and `coordination_event` refs use Get or their exact
-`internal_*` Query profile; they are not resolver types.
+Identify the object the user actually wants to read or change. Discover exact
+connected resolver types, sections and query profiles through the live catalog;
+connectivity differs from the historical schema. Use Get for an existing ref,
+and an answer-ready Query for lists. Obtain slot references through
+`available_slots_v1` when connected. Never substitute a parent reference for a
+missing direct target or probe arbitrary fields.
+
+The active coordination object is `priority_item`; use
+`internal_priority_board_v1` and `overview`. Projects, Tasks, Signals, proposals,
+plugin-user administration and attachment aliases are retired from the public
+catalog. Historical records are not imported into board cards. Source messages,
+Artifacts and meetings require explicitly connected capabilities; their presence
+in stored history or bundled contracts does not grant access.
 
 Derive the primary type from the business noun and, for actions, the operation's
 required reference fields: a rank or ticket area is a `ticket_class`; a lineup

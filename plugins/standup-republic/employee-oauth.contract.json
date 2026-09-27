@@ -1,38 +1,38 @@
 {
-  "schema_version": "sr_employee_oauth_resource_v2",
+  "schema_version": "sr_employee_oauth_resource_v3",
   "distribution_surface": "personal_pro",
   "plugin_id": "standup-republic",
   "plugin_display_name": "StandUp Republic Internal",
   "employee_mcp_endpoint": "https://plugin-mcp.sr-admin.tools/mcp",
   "authentication": "interactive_personal_oauth",
-  "protected_resource_metadata_url": "https://plugin-mcp.sr-admin.tools/.well-known/cloudflare-access-protected-resource/mcp",
+  "protected_resource_metadata_url": "https://plugin-mcp.sr-admin.tools/.well-known/oauth-protected-resource/mcp",
   "resource": "https://plugin-mcp.sr-admin.tools/mcp",
-  "authorization_server": "https://standup-republic-admin.cloudflareaccess.com",
+  "authorization_server": "https://yddipficdegaegdtsikf.supabase.co/auth/v1",
   "required_grant_types": [
     "authorization_code",
     "refresh_token"
   ],
   "required_code_challenge_method": "S256",
   "grant_policy": {
-    "access_token_lifetime": "15m",
-    "refresh_grant_session_duration": "720h",
     "reauthorization_required_after_expiry_or_revocation": true,
-    "server_side_role_and_scope_revalidation_on_refresh": true
+    "server_side_role_and_scope_revalidation_on_request": true,
+    "token_and_session_lifetime": "managed_by_supabase_configuration_not_attested_by_package"
   },
   "client_registration_policy": {
     "dynamic_client_registration_required": true,
-    "preserve_registered_client_during_runtime_releases": true,
     "service_token_fallback_for_people": false
   },
   "mcp_mount": {
     "kind": "bundled_mcp_json",
     "workspace_app_dependency": false,
-    "personal_pro_live_status": "production_resource_live_employee_reconnect_required"
+    "personal_pro_live_status": "native_supabase_source_candidate_not_deployment_proof"
   },
   "operator_rollback": {
     "endpoint": "https://standup-republic-sr-mcp-v2.standup-republic.workers.dev/mcp",
     "employee_visible": false,
     "executable_from_candidate": false,
     "purpose": "immutable_rollback_evidence_only"
-  }
+  },
+  "identity_source": "canonical_supabase_staff",
+  "authorization_boundary": "explicit_plugin_catalog_intersected_with_canonical_web_permissions"
 }

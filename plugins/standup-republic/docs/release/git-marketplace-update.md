@@ -121,3 +121,36 @@ OAuth remains the employee's separate personal connection. Preserve it across
 updates; reconnect only when Codex reports it necessary, using that employee's
 own SR identity. Never introduce a service token, alternate MCP URL, Business
 Workspace App, or `.app.json` as a fallback.
+
+## Native SR Login Cutover — 0.9.0
+
+After the coordinated backend rollout, update the existing Git installation:
+
+```bash
+codex plugin marketplace upgrade standup-republic-private
+codex plugin add standup-republic@standup-republic-private --json
+codex plugin list --json
+```
+
+Verify version `0.9.0` and an enabled installation. Fully restart Codex, open a
+new chat, and open **StandUp Republic Internal** in the plugin browser. Complete
+its connection prompt; an old connection may require reconnecting once. Sign in
+on the SR page with your personal SR work account, check the displayed account
+and SR role, then choose **Erlauben**. Return to Codex and start a fresh chat.
+No private repository checkout or Workspace membership is needed.
+
+First test prompt:
+
+> Prüfe meine StandUp-Republic-Verbindung und zeige meine persönliche Identität,
+> meine aktuelle SR-Rolle und den verfügbaren Plugin-Katalog. Lies anschließend
+> die nächsten drei Events, auf die ich Zugriff habe. Führe keine Änderungen aus.
+
+Success means a fresh server response, the expected personal identity/role,
+and actual permitted data. Merely seeing an installed plugin is insufficient.
+For a write test, first choose a concrete harmless change and inspect its
+preview before confirming it; do not mutate arbitrary events just to test access.
+
+The update commands above were checked against the installed Codex CLI help.
+OpenAI documents plugin installation/setup followed by a new chat, and restart
+for updated local plugin files: [plugin setup](https://developers.openai.com/learn/developers-codex-plugin)
+and [plugin packaging](https://developers.openai.com/plugins/build/plugins).

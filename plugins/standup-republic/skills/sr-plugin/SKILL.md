@@ -1,6 +1,6 @@
 ---
 name: sr-plugin
-description: "Orient and route internal StandUp Republic work in German or English across Codex, ChatGPT, WhatsApp DM, and WhatsApp groups. Use for requests about StandUp Republic, Comedyflash, employees, projects, project members, events, shows, venues, comedians, applications, bookings, ticketing, providers, payouts, access, support, runtime health, internal messages, tasks, canonical Artifacts, legacy attachments, signals, activity, OAuth, Workspace Site, status updates, Branding, Logo, Wortmarke, Mitarbeiterdokument, Release Notes, bekannte Einschränkungen, Rollback, or an SR data change. Route to sr-data, sr-actions, sr-support, sr-coordination, or sr-update by the requested outcome."
+description: "Orient and route internal StandUp Republic work in German or English across Codex, ChatGPT, WhatsApp DM, and WhatsApp groups. Use for requests about StandUp Republic, Comedyflash, employees, events, shows, venues, comedians, applications, bookings, ticketing, providers, payouts, access, support, runtime health, internal priority board, source messages, Artifacts, activity, OAuth, Workspace Site, status updates, Branding, Logo, Wortmarke, Mitarbeiterdokument, Release Notes, bekannte Einschränkungen, Rollback, or an SR data change. Route to sr-data, sr-actions, sr-support, sr-coordination, or sr-update by the requested outcome."
 ---
 
 # SR Plugin
@@ -48,6 +48,17 @@ Update only when the user requests or authorizes it; preserve their OAuth
 identity and use a new task after installation. A version hint must not hide a
 successful business result or turn a successful mutation into a retry.
 
+## Identity And Rights
+
+The native OAuth candidate connects a personal SR Supabase identity. Active
+Staff Admins and Super-Admins may connect; normal Admins are not globally
+read-only. Each supported read or action uses the same canonical Web rights,
+including the user's other roles. The explicit plugin catalog limits entities,
+sections, fields and actions; Web access alone does not expose arbitrary tables.
+There is no separate plugin-user role or email allowlist to manage. Use runtime
+health identity evidence to explain the connected account. Missing adapters are
+not permission denials. This bundle is a source candidate, not deployment proof.
+
 ## Route Once
 
 - Use `SR Data` for identity resolution, entity facts, lists, comparisons,
@@ -58,12 +69,10 @@ successful business result or turn a successful mutation into a retry.
   symptom whose cause is still unclear, or a grounded reply draft. Direct data
   questions, routine health checks, and clearly specified changes go straight
   to SR Data or SR Actions.
-- Use `SR Coordination` for internal Projects and members, messages,
-  communication channels, the Admin priority board, canonical
-  Artifacts, legacy attachments, signals, links, acknowledgements, activity,
-  and compact coordination views. It must verify
-  the current auth surface before a read or write and follow the manifest's
-  returned confirmation policy.
+- Use `SR Coordination` for the minimal Admin priority board. Source messages,
+  Artifacts and meetings are separate records and require an explicitly connected
+  runtime capability; historical references do not make them available.
+
 - Use `SR Update` for “Was ist neu?”, “Wo stehen wir?”, “Gib mir ein Update”,
   “Wie ist der Gesamtstand und was ist offen?”, and comparable cross-source
   current-status requests. Personal message queues and the Admin priority board stay with SR

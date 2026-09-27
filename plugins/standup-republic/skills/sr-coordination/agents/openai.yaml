@@ -1,4 +1,4 @@
 interface:
   display_name: "SR Coordination"
-  short_description: "Interne SR-Nachrichten und Aufgaben koordinieren"
+  short_description: "Internes SR-Admin-Prioritätenboard pflegen"
   default_prompt: "Use $sr-coordination to handle this internal SR coordination request."

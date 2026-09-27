@@ -15,12 +15,16 @@ Every enabled mutation uses `Prepare -> returned confirmation policy -> Execute
 -> receipt/post-check`. Active Product operations ordinarily
 return `confirmation_policy=required`. Coordination operations are owned by
 SR Coordination; their current confirmation policies come from Prepare.
-Composite Admin-policy operations add one confirmed related-action batch and a
-confirmed, revocable temporary Admin session with immediate revocation. An
-active temporary session may make an otherwise required eligible Product
-manifest `not_required`; follow only the current returned policy. `gated`,
+Only the live connected catalog can offer an operation. `gated`,
 `blocked`, `local-only`, `unsupported`, and unknown operations are
 non-executable. Never write through reads, shell, SQL, connectors, or prose.
+
+Native OAuth uses canonical personal SR Staff identity. Normal Admins may execute
+connected operations when their canonical Web permissions allow it; do not impose
+a blanket read-only rule or ask for a separate plugin role. Only named catalog
+operations and their explicit mutable fields are supported. Missing adapters are
+not permission denials. Retired task/project/signal/plugin-user operations and
+temporary Admin sessions must not be revived.
 
 ## Choose And Check The Operation
 
@@ -64,7 +68,7 @@ fallback.
 
 Use short intent contrasts from the generated reference. For example, changing
 whether sync is enabled is a settings operation; requesting a retry or immediate
-run is a sync request. A plugin role is not a Product role.
+run is a sync request. Canonical Web rights remain the authority for each supported action.
 
 ## Prepare
 
@@ -113,22 +117,6 @@ excluded. Execute the aggregate token once. Report every child readback,
 partial failure, first resume index, and rollback requirement honestly. A
 best-effort batch is never atomic. Do not report the requested end state unless
 the aggregate receipt proves every child.
-
-## Temporary Admin Session
-
-Use `admin_session.activate` only for an authenticated person Admin in a
-verified private Codex thread, ChatGPT thread, or WhatsApp DM. First show the
-duration, person/channel binding, exclusions, and maximum of four hours; wait
-for explicit confirmation. The session never adds a role, scope, operation,
-provider credential, or cross-channel authority.
-
-Read current state and remaining time through `admin_session_status_v1`.
-Revalidate the returned confirmation policy for every Prepare. Finance,
-Payment, Payout, Credential, Identity/Role, destructive, irreversible, and
-provider-wide actions always retain their separate gate. A different user,
-thread, DM, group, expired session, revoked session, or identity/scope drift
-cannot use it. Run `admin_session.revoke` immediately when the user asks to
-switch it off; do not ask for another confirmation.
 
 ## Confirmation Boundary
 

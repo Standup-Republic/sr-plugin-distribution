@@ -58,13 +58,13 @@ const toolSchemas = `${JSON.stringify({
   public_tool_count: contracts.SR_MCP_TOOL_NAMES.length,
   tools: Object.fromEntries(contracts.SR_MCP_TOOL_NAMES.map((name) => [name, {
     metadata: contracts.SR_MCP_TOOL_METADATA[name],
-    input_schema: z.toJSONSchema(contracts.SrMcpToolInputSchemas[name]),
+    input_schema: z.toJSONSchema(contracts.SrMcpPluginToolInputSchemas[name]),
     output_schema: z.toJSONSchema(contracts.SrMcpToolOutputSchemas[name]),
   }])),
 }, null, 2)}\n`;
 const actionOperationContract = `${JSON.stringify({
   contract_version: contracts.SR_MCP_CONTRACT_VERSION,
-  operations: contracts.SR_MCP_ACTION_OPERATION_REGISTRY,
+  operations: Object.fromEntries(contracts.SR_MCP_PLUGIN_ACTION_OPERATIONS.map((operation) => [operation, contracts.SR_MCP_ACTION_OPERATION_REGISTRY[operation]])),
 }, null, 2)}\n`;
 const canonicalArtifacts = Object.fromEntries(await Promise.all(canonicalArtifactPaths.map(async (path) => [
   path,

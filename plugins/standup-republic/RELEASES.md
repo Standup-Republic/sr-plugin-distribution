@@ -1,3 +1,16 @@
+## 0.9.0 — Native SR identity and bounded Web permissions (2026-09-27)
+
+Prepared for coordinated App/MCP rollout; package publication and personal-account acceptance are separate release steps.
+
+- Personal Supabase Staff identity replaces parallel plugin-user administration.
+- Normal Admins can use supported writes according to the same canonical Web permissions.
+- Explicit entities, sections, fields and named actions remain the plugin boundary.
+- Retires public Project/Task/Signal/proposal/attachment-alias and temporary Admin-session options; retains the minimal priority board.
+- Adds bounded identity evidence and named comedian editorial updates.
+- Historical messages, Artifacts and meetings are not automatically connected in native OAuth.
+- Generated contract source provenance is recorded separately in `contract-source.json`.
+- Existing connections may need a one-time reconnect with the personal SR work account after the authentication cutover; no GitHub or Workspace membership is required.
+
 ## 0.8.8+distribution.1 — Public personal-account distribution (2026-09-22)
 
 - Public Git marketplace at `Standup-Republic/sr-plugin-distribution`, without GitHub login or Workspace membership.

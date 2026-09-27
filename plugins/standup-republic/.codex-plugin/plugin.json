@@ -1,7 +1,7 @@
 {
   "name": "standup-republic",
-  "version": "0.8.8+distribution.1",
-  "description": "Privater SR Assistant f\u00fcr operative StandUp-Republic-Arbeit.",
+  "version": "0.9.0",
+  "description": "Privater SR Assistant für operative StandUp-Republic-Arbeit.",
   "author": {
     "name": "StandUp Republic",
     "url": "https://standup-republic.de"
@@ -19,19 +19,19 @@
   "interface": {
     "displayName": "StandUp Republic Internal",
     "shortDescription": "SR Assistant",
-    "longDescription": "Der SR Assistant unterst\u00fctzt autorisierte Mitarbeiterinnen und Mitarbeiter bei operativen Fragen rund um StandUp Republic. Er liefert nachvollziehbare Antworten auf Basis freigegebener SR-Daten, untersucht konkrete F\u00e4lle, koordiniert interne Nachrichten und Aufgaben und f\u00fchrt unterst\u00fctzte \u00c4nderungen mit sichtbarer Vorschau und Best\u00e4tigungsgrenze aus. Alle Abl\u00e4ufe funktionieren vollst\u00e4ndig textbasiert; verf\u00fcgbare Funktionen und Berechtigungen werden serverseitig gepr\u00fcft.",
+    "longDescription": "Der SR Assistant beantwortet operative Fragen auf Basis freigegebener SR-Daten, untersucht Supportfälle und führt unterstützte Änderungen mit sichtbarer Vorschau aus. Die Anmeldung erfolgt mit der persönlichen SR-Identität. Admins und Super-Admins nutzen ihre aktuellen SR-Web-Rechte innerhalb des ausdrücklich definierten Plugin-Katalogs.",
     "developerName": "StandUp Republic",
     "brandColor": "#070707",
     "category": "Business & Operations",
     "capabilities": [
       "Betriebliche SR-Fragen beantworten",
-      "Daten und Zust\u00e4nde nachvollziehbar pr\u00fcfen",
-      "Supportf\u00e4lle untersuchen",
-      "Interne Nachrichten und Aufgaben koordinieren",
-      "Best\u00e4tigte \u00c4nderungen sicher ausf\u00fchren"
+      "Daten und Zustände nachvollziehbar prüfen",
+      "Supportfälle untersuchen",
+      "Internes Admin-Prioritätenboard koordinieren",
+      "Bestätigte Änderungen sicher ausführen"
     ],
     "defaultPrompt": [
-      "Welche Comedyflash-Shows finden n\u00e4chste Woche in K\u00f6ln statt?",
+      "Welche Comedyflash-Shows finden nächste Woche in Köln statt?",
       "Warum konnte dieser Comedian noch nicht ausgezahlt werden?",
       "Untersuche diese Supportnachricht und entwirf eine Antwort."
     ],

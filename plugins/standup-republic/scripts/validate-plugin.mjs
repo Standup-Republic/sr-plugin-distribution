@@ -40,13 +40,14 @@ if (
   oauth.employee_mcp_endpoint !== endpoint ||
   oauth.resource !== endpoint ||
   oauth.authentication !== "interactive_personal_oauth" ||
-  oauth.schema_version !== "sr_employee_oauth_resource_v2" ||
-  oauth.grant_policy?.access_token_lifetime !== "15m" ||
-  oauth.grant_policy?.refresh_grant_session_duration !== "720h" ||
+  oauth.schema_version !== "sr_employee_oauth_resource_v3" ||
+  oauth.authorization_server !== "https://yddipficdegaegdtsikf.supabase.co/auth/v1" ||
+  oauth.protected_resource_metadata_url !== "https://plugin-mcp.sr-admin.tools/.well-known/oauth-protected-resource/mcp" ||
+  oauth.identity_source !== "canonical_supabase_staff" ||
+  oauth.mcp_mount?.personal_pro_live_status !== "native_supabase_source_candidate_not_deployment_proof" ||
   oauth.grant_policy?.reauthorization_required_after_expiry_or_revocation !== true ||
-  oauth.grant_policy?.server_side_role_and_scope_revalidation_on_refresh !== true ||
+  oauth.grant_policy?.server_side_role_and_scope_revalidation_on_request !== true ||
   oauth.client_registration_policy?.dynamic_client_registration_required !== true ||
-  oauth.client_registration_policy?.preserve_registered_client_during_runtime_releases !== true ||
   oauth.client_registration_policy?.service_token_fallback_for_people !== false ||
   oauth.mcp_mount?.kind !== "bundled_mcp_json" ||
   oauth.mcp_mount?.workspace_app_dependency !== false ||
@@ -93,6 +94,6 @@ console.log(JSON.stringify({
   public_tools: expectedTools,
   mcp_endpoint: endpoint,
   workspace_app_dependency: false,
-  personal_pro_live_status: "production_resource_live_employee_reconnect_required",
+  personal_pro_live_status: oauth.mcp_mount.personal_pro_live_status,
   content_sha256: actualContentHash,
 }));

@@ -17,7 +17,7 @@
   "public_tools": {
     "sr_entity_resolve": {
       "title": "Resolve Standup Republic entities",
-      "description": "Resolve an ambiguous human name, natural-language identifier, or supported provider identifier into stable SR references. For a dated performance, resolve an event; use show for its reusable template. Supply the narrowest plausible entity_types plus optional city/date/provider hints; full date_hint values are RFC3339. Product resolution is connected for event, location, profile, and show; internal Coordination resolution is connected for artifact, active plugin_user, message, project, task, and legacy attachment records. Other requested-only types return resolver_entity_type_not_connected with connected_entity_types. Use sr_entity_get when a canonical ref is already known; slot is a bookable lineup time window and is normally queried with available_slots_v1. Read-only; do not probe unsupported types.",
+      "description": "Resolve an ambiguous human name, natural-language identifier, or supported provider identifier into stable SR references. For a dated performance, resolve an event; use show for its reusable template. Supply the narrowest plausible entity_types plus optional city/date/provider hints; full date_hint values are RFC3339. Connected resolver types depend on the current runtime adapter; use the live catalog and its connected types. Unconnected types return resolver_entity_type_not_connected with connected_entity_types. Use sr_entity_get when a canonical ref is already known; slot is a bookable lineup time window and is normally queried with available_slots_v1. Read-only; do not probe unsupported types.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -27,7 +27,7 @@
     },
     "sr_entity_get": {
       "title": "Get one Standup Republic entity",
-      "description": "Read answer-ready sections of exactly one stable SR entity reference. Choose sections from the entity-type registry; source_mode defaults to canonical, compare is for bounded canonical/provider comparison, and provider_live is Admin-only where connected. subject_ref/resource_ref add an already-resolved relationship context and never replace entity_ref. The result reports source, freshness, coverage, warnings, and a typed allowed-section error for one corrected retry. Discover current entity sections via sr_runtime_health with components:['mcp'], catalog:{kind:'entity',key:'<entity_type>'}. Use only canonical sections for the entity type: activity_event: overview, actor, operation, result, correlation, freshness, coverage; application: overview, status, booking, event, schedule, freshness, coverage; artifact: overview, current_version, google_drive, versions, links, audience, retention, provenance, download, available_actions, freshness, coverage; attachment: overview, availability, message, task, download, freshness, coverage; booking: overview, status, booking, event, schedule, payout, freshness, coverage; coordination_event: overview, actor, operation, target, result, correlation, freshness, coverage; event: overview, status, event, schedule, location, booking, bookings, applications, lineup, ticketing, prices, capacity, sales_summary, configuration, provider, provider_details, provider_links, finance_summary, finance, invoices, operations, status_evidence, canonical_timeline, history, freshness, coverage; invoice: overview, status, amount, event, freshness, coverage; link: overview, source, target, status, freshness, coverage; location: overview, status, schedule, events, freshness, coverage; mcp_tool_call: overview, status, arguments, result, correlation, freshness, coverage; message: overview, sender, recipient, task, attachments, state, available_actions, freshness, coverage; meeting: overview, participants, summary, auto_created_tasks, auto_updated_tasks, manually_linked_tasks, review_proposals, signals, links, report, transcript, provenance, freshness, coverage; operation_run: status, result, receipt, post_check, freshness, coverage; organization: overview, status, product_access, plugin_access, freshness, coverage; payout_case: overview, status, amount, event, freshness, coverage, status_evidence, canonical_timeline, history; person: detail, overview, role, status, current_tasks, important_projects, memberships, relationships, activity, agent_runs, receipts, notifications, provenance, freshness, coverage; plugin_user: overview, role, status, coordination_capabilities, freshness, coverage; priority_item: overview, freshness, coverage; project: detail, overview, members, team, tasks, links, context_links, updates, receipts, available_actions, freshness, coverage; profile: overview, status, booking, product_access, plugin_access, invoices, freshness, coverage; show: overview, status, schedule, events, location, ticketing, sales_summary, product_access, provider_links, freshness, coverage; signal: overview, status, source, links, freshness, coverage; slot: overview, status, availability, booking, event, location, schedule, payout, freshness, coverage; subscription: overview, status, amount, freshness, coverage; task: detail, overview, project, requester, assignee, thread, provenance, linked_context, context_links, references, message, attachments, comments, updates, agent_runs, receipts, notifications, timeline, state, available_actions, freshness, coverage; task_proposal: overview, requester, assignee, provenance, decision, resulting_task, available_actions, freshness, coverage; ticket_class: overview, status, identity, prices, capacity, ticketing, provider, freshness, coverage. Operation-run sections: status, receipt, post_check; result, freshness, and coverage are also available. Common event/show sections: overview, schedule, location, ticketing, prices; consult the entity-specific list above for the rest. For payout_case prefer overview, status, amount, event, freshness, and coverage; status_evidence, canonical_timeline, and history remain compatibility sections. The event, bookings, finance, and operations event sections remain explicit compatibility sections. Unsupported sections return entity_section_not_supported with the exact allowed list; do not probe aliases.",
+      "description": "Read answer-ready sections of exactly one stable SR entity reference. Choose sections from the entity-type registry; source_mode defaults to canonical, compare is for bounded canonical/provider comparison, and provider_live is Admin-only where connected. subject_ref/resource_ref add an already-resolved relationship context and never replace entity_ref. The result reports source, freshness, coverage, warnings, and a typed allowed-section error for one corrected retry. Discover current entity sections via sr_runtime_health with components:['mcp'], catalog:{kind:'entity',key:'<entity_type>'}. Retired coordination entities are not part of the public plugin catalog.",
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -115,18 +115,6 @@
           "provenance",
           "download",
           "available_actions",
-          "freshness",
-          "coverage"
-        ]
-      },
-      "attachment": {
-        "purpose": "one legacy transfer alias projected from its canonical Artifact",
-        "sections": [
-          "overview",
-          "availability",
-          "message",
-          "task",
-          "download",
           "freshness",
           "coverage"
         ]
@@ -233,35 +221,29 @@
           "coverage"
         ]
       },
-      "message": {
-        "purpose": "one permission-filtered internal message",
-        "sections": [
-          "overview",
-          "sender",
-          "recipient",
-          "task",
-          "attachments",
-          "state",
-          "available_actions",
-          "freshness",
-          "coverage"
-        ]
-      },
       "meeting": {
         "purpose": "one private source-grounded meeting report with typed outcomes and server-proxied R2 artifacts",
         "sections": [
           "overview",
           "participants",
           "summary",
-          "auto_created_tasks",
-          "auto_updated_tasks",
-          "manually_linked_tasks",
-          "review_proposals",
-          "signals",
           "links",
           "report",
           "transcript",
           "provenance",
+          "freshness",
+          "coverage"
+        ]
+      },
+      "message": {
+        "purpose": "one permission-filtered internal message",
+        "sections": [
+          "overview",
+          "sender",
+          "recipient",
+          "attachments",
+          "state",
+          "available_actions",
           "freshness",
           "coverage"
         ]
@@ -283,7 +265,6 @@
           "overview",
           "status",
           "product_access",
-          "plugin_access",
           "freshness",
           "coverage"
         ]
@@ -309,26 +290,12 @@
           "overview",
           "role",
           "status",
-          "current_tasks",
-          "important_projects",
           "memberships",
           "relationships",
           "activity",
-          "agent_runs",
           "receipts",
           "notifications",
           "provenance",
-          "freshness",
-          "coverage"
-        ]
-      },
-      "plugin_user": {
-        "purpose": "one allowlisted plugin user and bounded Coordination capabilities",
-        "sections": [
-          "overview",
-          "role",
-          "status",
-          "coordination_capabilities",
           "freshness",
           "coverage"
         ]
@@ -341,23 +308,6 @@
           "coverage"
         ]
       },
-      "project": {
-        "purpose": "one canonical internal Coordination Project with its task-derived canonical team and member-visible task set",
-        "sections": [
-          "detail",
-          "overview",
-          "members",
-          "team",
-          "tasks",
-          "links",
-          "context_links",
-          "updates",
-          "receipts",
-          "available_actions",
-          "freshness",
-          "coverage"
-        ]
-      },
       "profile": {
         "purpose": "one SR profile and its bounded booking/access context",
         "sections": [
@@ -365,7 +315,6 @@
           "status",
           "booking",
           "product_access",
-          "plugin_access",
           "invoices",
           "freshness",
           "coverage"
@@ -383,17 +332,6 @@
           "sales_summary",
           "product_access",
           "provider_links",
-          "freshness",
-          "coverage"
-        ]
-      },
-      "signal": {
-        "purpose": "one timestamped bounded operational signal",
-        "sections": [
-          "overview",
-          "status",
-          "source",
-          "links",
           "freshness",
           "coverage"
         ]
@@ -423,47 +361,6 @@
           "coverage"
         ]
       },
-      "task": {
-        "purpose": "archived legacy Coordination task; reads return coordination_task_retired (410)",
-        "sections": [
-          "detail",
-          "overview",
-          "project",
-          "requester",
-          "assignee",
-          "thread",
-          "provenance",
-          "linked_context",
-          "context_links",
-          "references",
-          "message",
-          "attachments",
-          "comments",
-          "updates",
-          "agent_runs",
-          "receipts",
-          "notifications",
-          "timeline",
-          "state",
-          "available_actions",
-          "freshness",
-          "coverage"
-        ]
-      },
-      "task_proposal": {
-        "purpose": "one immutable source-grounded Meeting task proposal and its requester decision",
-        "sections": [
-          "overview",
-          "requester",
-          "assignee",
-          "provenance",
-          "decision",
-          "resulting_task",
-          "available_actions",
-          "freshness",
-          "coverage"
-        ]
-      },
       "ticket_class": {
         "purpose": "one canonical ticket class",
         "sections": [
@@ -478,133 +375,10 @@
           "coverage"
         ]
       }
-    },
-    "coordination_detail": {
-      "schema_version": "coordination-detail-2026-08-02.v2",
-      "entity_get_schema_version": "2026-08-02",
-      "entity_types": [
-        "project",
-        "task"
-      ],
-      "list_sections": [
-        "people",
-        "members",
-        "team",
-        "comments",
-        "updates",
-        "context_links",
-        "artifacts",
-        "relationships",
-        "tasks",
-        "agent_events",
-        "receipts",
-        "notifications",
-        "timeline",
-        "available_actions"
-      ],
-      "record_sections": [
-        "overview",
-        "state",
-        "provenance",
-        "freshness"
-      ],
-      "section_statuses": [
-        "complete",
-        "partial",
-        "unsupported"
-      ],
-      "dedupe": {
-        "policy_version": "coordination-detail-dedupe-2026-08-01.v1",
-        "cursor_max_seen_keys": 512,
-        "sections": {
-          "agent_events": {
-            "identity_key": "event_ref|canonical_event",
-            "sort": "occurred_or_created_at_asc,semantic_identity_asc,canonical_json_asc"
-          },
-          "artifacts": {
-            "identity_key": "artifact_ref+attachment_ref+version_ref|canonical_artifact",
-            "sort": "occurred_or_created_at_asc,semantic_identity_asc,canonical_json_asc"
-          },
-          "available_actions": {
-            "identity_key": "operation+target_ref+status+confirmation_policy",
-            "sort": "occurred_or_created_at_asc,semantic_identity_asc,canonical_json_asc"
-          },
-          "comments": {
-            "identity_key": "comment_ref|canonical_comment",
-            "sort": "occurred_or_created_at_asc,semantic_identity_asc,canonical_json_asc"
-          },
-          "context_links": {
-            "identity_key": "source_ref+target_ref+relation+status+visibility+provenance+evidence",
-            "sort": "semantic_identity_asc,canonical_json_asc"
-          },
-          "members": {
-            "identity_key": "person_ref+role+status",
-            "sort": "occurred_or_created_at_asc,semantic_identity_asc,canonical_json_asc"
-          },
-          "team": {
-            "identity_key": "person.person_ref",
-            "sort": "person.display_name_asc,person.person_ref_asc"
-          },
-          "notifications": {
-            "identity_key": "notification_ref+delivery_ref|canonical_notification",
-            "sort": "occurred_or_created_at_asc,semantic_identity_asc,canonical_json_asc"
-          },
-          "people": {
-            "identity_key": "relation+person_ref+role+status",
-            "sort": "occurred_or_created_at_asc,semantic_identity_asc,canonical_json_asc"
-          },
-          "receipts": {
-            "identity_key": "receipt_ref+operation_run_ref|canonical_receipt",
-            "sort": "occurred_or_created_at_asc,semantic_identity_asc,canonical_json_asc"
-          },
-          "relationships": {
-            "identity_key": "relation+canonical_refs+status+evidence",
-            "sort": "occurred_or_created_at_asc,semantic_identity_asc,canonical_json_asc"
-          },
-          "tasks": {
-            "identity_key": "task_ref+relation+dependency_ref+target_ref+status",
-            "sort": "occurred_or_created_at_asc,semantic_identity_asc,canonical_json_asc"
-          },
-          "timeline": {
-            "identity_key": "event_ref+update_ref+receipt_ref|canonical_event",
-            "sort": "occurred_or_created_at_asc,semantic_identity_asc,canonical_json_asc"
-          },
-          "updates": {
-            "identity_key": "update_ref+event_ref|canonical_update",
-            "sort": "occurred_or_created_at_asc,semantic_identity_asc,canonical_json_asc"
-          }
-        }
-      },
-      "pagination": {
-        "independent_cursors": [
-          "comments",
-          "context_links",
-          "agent_events"
-        ],
-        "next_cursor": "opaque_or_null"
-      },
-      "agent_events": {
-        "project": "unsupported_bounded_v1",
-        "task": "embedded_bounded_paginated"
-      }
     }
   },
   "entity_query": {
     "profiles": {
-      "admin_session_status_v1": {
-        "availability": "active",
-        "required_role": "admin",
-        "purpose": "the authenticated Admin's current channel-bound temporary approval session, remaining lifetime, and revocation state",
-        "result_entity_types": [
-          "operation_run"
-        ],
-        "scope_entity_types": [],
-        "filters": [],
-        "group_by": [],
-        "sorts": [],
-        "select_fields": [],
-        "default_select": []
-      },
       "available_slots_v1": {
         "availability": "active",
         "required_role": "employee",
@@ -659,6 +433,21 @@
           "availability_status",
           "fee_eur"
         ]
+      },
+      "staff_web_ui_v1": {
+        "availability": "active",
+        "required_role": "admin",
+        "purpose": "Read explicitly connected, plugin-projected Web areas as the current SR user/session. Discover exact connected operation names and input/output fields through the live runtime catalog; filters.operation selects one and filters.input supplies its bounded parameters. The projection does not automatically expose new Web fields. Returns one data envelope; inner pagination describes the dataset, while outer pagination describes only the envelope.",
+        "result_entity_types": [],
+        "scope_entity_types": [],
+        "filters": [
+          "operation",
+          "input"
+        ],
+        "group_by": [],
+        "sorts": [],
+        "select_fields": [],
+        "default_select": []
       },
       "bank_accounting_reconciliation_v1": {
         "availability": "active",
@@ -1618,397 +1407,6 @@
           "updated_at"
         ]
       },
-      "internal_projects_v1": {
-        "availability": "active",
-        "required_role": "employee",
-        "purpose": "canonical Coordination Projects visible through active Project membership, with global Admin override",
-        "result_entity_types": [
-          "project"
-        ],
-        "scope_entity_types": [
-          "plugin_user"
-        ],
-        "filters": [
-          "member_user_ref",
-          "search",
-          "status",
-          "updated_after"
-        ],
-        "filter_contract": {
-          "member_user_ref": "canonical sr:plugin_user reference; non-Admins may request only their own membership",
-          "search": "plain-text terms matched against Project title and summary",
-          "status": "planned, active, paused, completed, or cancelled",
-          "updated_after": "exclusive RFC3339 timestamp"
-        },
-        "group_by": [],
-        "sorts": [
-          {
-            "field": "updated_at",
-            "direction": "desc"
-          }
-        ],
-        "select_fields": [
-          "project_ref",
-          "title",
-          "summary",
-          "status",
-          "member_count",
-          "task_count",
-          "open_task_count",
-          "team",
-          "created_at",
-          "updated_at"
-        ],
-        "default_select": [
-          "project_ref",
-          "title",
-          "summary",
-          "status",
-          "member_count",
-          "task_count",
-          "open_task_count",
-          "team",
-          "created_at",
-          "updated_at"
-        ]
-      },
-      "internal_signals_v1": {
-        "availability": "active",
-        "required_role": "employee",
-        "purpose": "bounded timestamped internal operational signals stored in Coordination D1 by connected Product, communication, meeting, and manual ingestion paths",
-        "result_entity_types": [
-          "signal"
-        ],
-        "scope_entity_types": [
-          "event",
-          "show",
-          "profile",
-          "message",
-          "task"
-        ],
-        "filters": [
-          "created_after",
-          "signal_type",
-          "source_kind",
-          "status"
-        ],
-        "filter_contract": {
-          "created_after": "exclusive RFC3339 timestamp",
-          "signal_type": "registered bounded signal type",
-          "source_kind": "product, coordination, or manual",
-          "status": "active, superseded, or resolved"
-        },
-        "group_by": [],
-        "sorts": [
-          {
-            "field": "occurred_at",
-            "direction": "desc"
-          }
-        ],
-        "select_fields": [
-          "signal_ref",
-          "signal_type",
-          "source_kind",
-          "source_ref",
-          "title",
-          "summary",
-          "status",
-          "occurred_at"
-        ],
-        "default_select": [
-          "signal_ref",
-          "signal_type",
-          "source_kind",
-          "source_ref",
-          "title",
-          "summary",
-          "status",
-          "occurred_at"
-        ]
-      },
-      "internal_task_agent_events_v1": {
-        "availability": "blocked",
-        "required_role": "employee",
-        "purpose": "sanitized cursor-backed SR Agent run events for one visible internal Task; never returns prompts, tool arguments, lease tokens, Runtime session IDs, or raw result payloads",
-        "result_entity_types": [
-          "activity_event",
-          "task"
-        ],
-        "scope_entity_types": [
-          "task"
-        ],
-        "filters": [
-          "occurred_after",
-          "run_ref",
-          "state",
-          "task_ref"
-        ],
-        "filter_contract": {
-          "occurred_after": "exclusive RFC3339 timestamp",
-          "run_ref": "canonical sr:task_run reference belonging to the scoped Task",
-          "state": "queued, in_progress, needs_review, accepted, completed, retry, failed, dead_letter, or changes_requested",
-          "task_ref": "canonical sr:task reference; required when scope_ref is omitted"
-        },
-        "group_by": [],
-        "sorts": [
-          {
-            "field": "occurred_at",
-            "direction": "asc"
-          }
-        ],
-        "select_fields": [
-          "event_ref",
-          "run_ref",
-          "task_ref",
-          "state",
-          "actor_ref",
-          "summary_redacted",
-          "metadata",
-          "occurred_at"
-        ],
-        "default_select": [
-          "event_ref",
-          "run_ref",
-          "task_ref",
-          "state",
-          "actor_ref",
-          "summary_redacted",
-          "metadata",
-          "occurred_at"
-        ]
-      },
-      "internal_tasks_assigned_v1": {
-        "availability": "blocked",
-        "required_role": "employee",
-        "purpose": "tasks assigned to the authenticated plugin user",
-        "result_entity_types": [
-          "task"
-        ],
-        "scope_entity_types": [
-          "plugin_user",
-          "message",
-          "project"
-        ],
-        "filters": [
-          "created_after",
-          "due_before",
-          "has_attachments",
-          "priority",
-          "project_ref",
-          "requester_user_ref",
-          "search",
-          "status",
-          "updated_after"
-        ],
-        "group_by": [],
-        "sorts": [
-          {
-            "field": "updated_at",
-            "direction": "desc"
-          }
-        ],
-        "select_fields": [
-          "task_ref",
-          "requester_user_ref",
-          "requester_display",
-          "assignee_user_ref",
-          "assignee_display",
-          "assignee",
-          "assignment",
-          "title",
-          "objective",
-          "details_markdown",
-          "status",
-          "priority",
-          "due_at",
-          "source_message_ref",
-          "project_ref",
-          "issue_ref",
-          "context_url",
-          "has_attachments",
-          "attachment_count",
-          "created_at",
-          "updated_at"
-        ],
-        "default_select": [
-          "task_ref",
-          "requester_user_ref",
-          "requester_display",
-          "assignee_user_ref",
-          "assignee_display",
-          "assignee",
-          "assignment",
-          "title",
-          "objective",
-          "details_markdown",
-          "status",
-          "priority",
-          "due_at",
-          "source_message_ref",
-          "project_ref",
-          "issue_ref",
-          "context_url",
-          "has_attachments",
-          "attachment_count",
-          "created_at",
-          "updated_at"
-        ]
-      },
-      "internal_tasks_created_v1": {
-        "availability": "blocked",
-        "required_role": "employee",
-        "purpose": "tasks requested by the authenticated plugin user",
-        "result_entity_types": [
-          "task"
-        ],
-        "scope_entity_types": [
-          "plugin_user",
-          "message",
-          "project"
-        ],
-        "filters": [
-          "assignee_user_ref",
-          "created_after",
-          "due_before",
-          "has_attachments",
-          "priority",
-          "project_ref",
-          "search",
-          "status",
-          "updated_after"
-        ],
-        "group_by": [],
-        "sorts": [
-          {
-            "field": "updated_at",
-            "direction": "desc"
-          }
-        ],
-        "select_fields": [
-          "task_ref",
-          "requester_user_ref",
-          "requester_display",
-          "assignee_user_ref",
-          "assignee_display",
-          "assignee",
-          "assignment",
-          "title",
-          "objective",
-          "details_markdown",
-          "status",
-          "priority",
-          "due_at",
-          "source_message_ref",
-          "project_ref",
-          "issue_ref",
-          "context_url",
-          "has_attachments",
-          "attachment_count",
-          "created_at",
-          "updated_at"
-        ],
-        "default_select": [
-          "task_ref",
-          "requester_user_ref",
-          "requester_display",
-          "assignee_user_ref",
-          "assignee_display",
-          "assignee",
-          "assignment",
-          "title",
-          "objective",
-          "details_markdown",
-          "status",
-          "priority",
-          "due_at",
-          "source_message_ref",
-          "project_ref",
-          "issue_ref",
-          "context_url",
-          "has_attachments",
-          "attachment_count",
-          "created_at",
-          "updated_at"
-        ]
-      },
-      "internal_team_tasks_v1": {
-        "availability": "blocked",
-        "required_role": "employee",
-        "purpose": "bounded Project-member-visible task board metadata with global Admin override; no private message bodies or attachment grants",
-        "result_entity_types": [
-          "task"
-        ],
-        "scope_entity_types": [
-          "plugin_user",
-          "project"
-        ],
-        "filters": [
-          "assignee_user_ref",
-          "created_after",
-          "due_before",
-          "priority",
-          "project_ref",
-          "requester_user_ref",
-          "search",
-          "status",
-          "updated_after"
-        ],
-        "group_by": [
-          "assignee"
-        ],
-        "sorts": [
-          {
-            "field": "updated_at",
-            "direction": "desc"
-          }
-        ],
-        "select_fields": [
-          "task_ref",
-          "requester_user_ref",
-          "requester_display",
-          "assignee_user_ref",
-          "assignee_display",
-          "assignee",
-          "assignment",
-          "title",
-          "objective",
-          "details_markdown",
-          "status",
-          "priority",
-          "due_at",
-          "source_message_ref",
-          "project_ref",
-          "issue_ref",
-          "context_url",
-          "has_attachments",
-          "attachment_count",
-          "created_at",
-          "updated_at"
-        ],
-        "default_select": [
-          "task_ref",
-          "requester_user_ref",
-          "requester_display",
-          "assignee_user_ref",
-          "assignee_display",
-          "assignee",
-          "assignment",
-          "title",
-          "objective",
-          "details_markdown",
-          "status",
-          "priority",
-          "due_at",
-          "source_message_ref",
-          "project_ref",
-          "issue_ref",
-          "context_url",
-          "has_attachments",
-          "attachment_count",
-          "created_at",
-          "updated_at"
-        ]
-      },
       "mcp_audit_log_v1": {
         "availability": "active",
         "required_role": "admin",
@@ -2549,58 +1947,69 @@
       ]
     },
     "operations": {
-      "admin_session.activate": {
+      "application.accept": {
         "confirmation_policy": "required",
         "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
+          "kind": "email",
+          "mode": "receipt_required",
+          "claim_boundary": "Use only the Main App-owned delivery intent and its current canonical stage; internal acceptance alone never proves sending or delivery.",
+          "success_summary": "Application accepted and Booking read back internally; email state is reported separately from the canonical Main App receipt."
         },
         "availability": "active",
-        "required_role": "admin",
-        "domain": "admin",
+        "required_role": "employee",
+        "domain": "booking",
         "target_entity_types": [
-          "operation_run"
+          "application",
+          "booking"
         ],
-        "required_ref_fields": [],
-        "creates_entity": "operation_run",
-        "required_existing_dependencies": [],
-        "use_when": "activate one explicit, audited, person-bound and current-channel-bound no-repeat-confirmation window for already permitted Admin actions",
-        "not_for": "granting roles/scopes, crossing users or channels, service identities, group channels, or bypassing sensitive Finance, Payment, Payout, Credential, Identity/Role, destructive, irreversible, or provider-wide changes",
-        "payload_guide": "{duration_minutes:1..240}",
+        "required_ref_fields": [
+          "application_ref"
+        ],
+        "creates_entity": "booking",
+        "required_existing_dependencies": [
+          "application"
+        ],
+        "use_when": "accept one existing open application",
+        "not_for": "rejecting or moving a booking",
+        "payload_guide": "{application_ref}",
         "payload_variants": [
           {
             "required": [
-              "duration_minutes"
+              "application_ref"
             ],
             "optional": []
           }
         ]
       },
-      "admin_session.revoke": {
-        "confirmation_policy": "not_required",
+      "application.reject": {
+        "confirmation_policy": "required",
         "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
+          "kind": "email",
+          "mode": "receipt_required",
+          "claim_boundary": "Only the Main App delivery receipt proves the rejection email stage; a rejected application alone does not prove delivery.",
+          "success_summary": "Application rejected and read back internally; email state is reported separately from the canonical Main App receipt."
         },
         "availability": "active",
-        "required_role": "admin",
-        "domain": "admin",
+        "required_role": "employee",
+        "domain": "booking",
         "target_entity_types": [
-          "operation_run"
+          "application"
         ],
-        "required_ref_fields": [],
+        "required_ref_fields": [
+          "application_ref"
+        ],
         "creates_entity": null,
-        "required_existing_dependencies": [],
-        "use_when": "immediately revoke the authenticated Admin's current channel-bound temporary approval session",
-        "not_for": "revoking another user or another channel session",
-        "payload_guide": "{reason?}",
+        "required_existing_dependencies": [
+          "application"
+        ],
+        "use_when": "reject one existing open application",
+        "not_for": "accepting an application or removing a confirmed booking",
+        "payload_guide": "{application_ref,reason?}",
         "payload_variants": [
           {
-            "required": [],
+            "required": [
+              "application_ref"
+            ],
             "optional": [
               "reason"
             ]
@@ -2639,6 +2048,128 @@
             "optional": [
               "failure_policy"
             ]
+          }
+        ]
+      },
+      "booking.move": {
+        "confirmation_policy": "required",
+        "external_effect": {
+          "kind": "none",
+          "mode": "internal_only",
+          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
+          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
+        },
+        "availability": "active",
+        "required_role": "employee",
+        "domain": "booking",
+        "target_entity_types": [
+          "booking",
+          "slot"
+        ],
+        "required_ref_fields": [
+          "from_slot_ref",
+          "to_slot_ref"
+        ],
+        "creates_entity": null,
+        "required_existing_dependencies": [
+          "booking",
+          "slot"
+        ],
+        "use_when": "move one existing booking between two identified slots; resolve an ambiguous person through the occupied source slot before preparing",
+        "not_for": "creating a new booking or removing and recreating a booking",
+        "payload_guide": "{from_slot_ref,to_slot_ref}",
+        "payload_variants": [
+          {
+            "required": [
+              "from_slot_ref",
+              "to_slot_ref"
+            ],
+            "optional": []
+          }
+        ]
+      },
+      "booking.remove": {
+        "confirmation_policy": "required",
+        "external_effect": {
+          "kind": "email",
+          "mode": "receipt_required",
+          "claim_boundary": "Use only the Main App-owned cancellation email intent and canonical delivery stage; the cancellation ledger alone proves no delivery.",
+          "success_summary": "Booking removed and cancellation state read back internally; email state is reported separately from the canonical Main App receipt."
+        },
+        "availability": "active",
+        "required_role": "employee",
+        "domain": "booking",
+        "target_entity_types": [
+          "booking",
+          "slot"
+        ],
+        "required_ref_fields": [
+          "booking_ref",
+          "slot_ref"
+        ],
+        "creates_entity": null,
+        "required_existing_dependencies": [
+          "booking"
+        ],
+        "use_when": "remove an identified booking or occupied slot without replacing it",
+        "not_for": "rejecting an open application or moving/rescheduling/rebooking a comedian to another slot; use booking.move with both slot refs",
+        "payload_guide": "{booking_ref or slot_ref,reason?,notification_policy?}",
+        "payload_variants": [
+          {
+            "required": [
+              "booking_ref"
+            ],
+            "optional": [
+              "reason",
+              "notification_policy"
+            ]
+          },
+          {
+            "required": [
+              "slot_ref"
+            ],
+            "optional": [
+              "reason",
+              "notification_policy"
+            ]
+          }
+        ]
+      },
+      "comedian.book": {
+        "confirmation_policy": "required",
+        "external_effect": {
+          "kind": "email",
+          "mode": "receipt_required",
+          "claim_boundary": "Use only the versioned Main App Product-policy decision; this operation currently reports not_requested_by_policy rather than inventing a notification.",
+          "success_summary": "Profile booked into the Slot and read back internally; the Main App policy decision is reported separately."
+        },
+        "availability": "active",
+        "required_role": "employee",
+        "domain": "booking",
+        "target_entity_types": [
+          "booking",
+          "profile",
+          "slot"
+        ],
+        "required_ref_fields": [
+          "profile_ref",
+          "slot_ref"
+        ],
+        "creates_entity": "booking",
+        "required_existing_dependencies": [
+          "profile",
+          "slot"
+        ],
+        "use_when": "book one identified comedian into one identified free slot",
+        "not_for": "creating an invitation",
+        "payload_guide": "{profile_ref,slot_ref}",
+        "payload_variants": [
+          {
+            "required": [
+              "profile_ref",
+              "slot_ref"
+            ],
+            "optional": []
           }
         ]
       },
@@ -2741,6 +2272,42 @@
           }
         ]
       },
+      "communication.message.reply": {
+        "confirmation_policy": "not_required",
+        "external_effect": {
+          "kind": "none",
+          "mode": "internal_only",
+          "claim_boundary": "This replies only inside the canonical Coordination thread; never describe it as an email, WhatsApp, Slack, or other external reply.",
+          "success_summary": "One direct internal Coordination reply was created and read back; no external delivery is implied."
+        },
+        "availability": "active",
+        "required_role": "employee",
+        "domain": "coordination",
+        "target_entity_types": [
+          "message"
+        ],
+        "required_ref_fields": [
+          "message_ref"
+        ],
+        "creates_entity": "message",
+        "required_existing_dependencies": [
+          "message"
+        ],
+        "use_when": "reply to one visible direct internal Coordination message; the server derives the active counterpart and canonical thread from the source message",
+        "not_for": "external email, WhatsApp or Slack delivery; provider destinations; selecting a recipient, conversation or thread in payload",
+        "payload_guide": "{message_ref,body_markdown,attachment_refs?:[...]}",
+        "payload_variants": [
+          {
+            "required": [
+              "message_ref",
+              "body_markdown"
+            ],
+            "optional": [
+              "attachment_refs"
+            ]
+          }
+        ]
+      },
       "communication.message.send": {
         "confirmation_policy": "not_required",
         "external_effect": {
@@ -2779,118 +2346,6 @@
               "attachment_refs",
               "batch_ref"
             ]
-          }
-        ]
-      },
-      "communication.message.reply": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "This replies only inside the canonical Coordination thread; never describe it as an email, WhatsApp, Slack, or other external reply.",
-          "success_summary": "One direct internal Coordination reply was created and read back; no external delivery is implied."
-        },
-        "availability": "active",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "message"
-        ],
-        "required_ref_fields": [
-          "message_ref"
-        ],
-        "creates_entity": "message",
-        "required_existing_dependencies": [
-          "message"
-        ],
-        "use_when": "reply to one visible direct internal Coordination message; the server derives the active counterpart and canonical thread from the source message",
-        "not_for": "external email, WhatsApp or Slack delivery; provider destinations; selecting a recipient, conversation or thread in payload",
-        "payload_guide": "{message_ref,body_markdown,attachment_refs?:[...]}",
-        "payload_variants": [
-          {
-            "required": [
-              "message_ref",
-              "body_markdown"
-            ],
-            "optional": [
-              "attachment_refs"
-            ]
-          }
-        ]
-      },
-      "coordination.whatsapp_history.import": {
-        "confirmation_policy": "required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Prepare is a write-free dry-run. Execute may commit only the exact bounded historical WhatsApp batch, its digest-only import ledger, attachment metadata and canonical receipt. It never sends, replies, enriches, or contacts WhatsApp.",
-          "success_summary": "One bounded historical WhatsApp batch was atomically imported or exactly deduplicated and independently read back; provider delivery is not implied."
-        },
-        "availability": "active",
-        "required_role": "admin",
-        "domain": "coordination",
-        "target_entity_types": [
-          "message",
-          "operation_run"
-        ],
-        "required_ref_fields": [
-          "source_ref"
-        ],
-        "creates_entity": "operation_run",
-        "required_existing_dependencies": [],
-        "use_when": "dry-run and, after explicit confirmation, atomically import one 1..25 item batch from one registered historical WhatsApp source with stable provider keys and immutable provenance digests",
-        "not_for": "source parsing, unregistered chats, inferred identities or visibility, direct SQL/webhook writes, external WhatsApp sends, unbounded files, or mixing source snapshots",
-        "payload_guide": "{source_ref,source_snapshot_digest,secret_policy_version,batch_ref,batch_index,batch_count,item_offset,source_total_count,messages:[{provider_message_key,external_conversation_id,external_sender_id,sender_display,occurred_at,payload_digest,source_content_digest,scanner_version,secret_disposition:'verbatim'|'redact'|'quarantine'|'exclude',body_markdown?,secret_scan?,false_positive_reason?,attachments?:[{provider_attachment_key,original_filename?,media_type?,size_bytes?,sha256?,metadata?}]}] (1..25)}",
-        "payload_variants": [
-          {
-            "required": [
-              "source_ref",
-              "source_snapshot_digest",
-              "secret_policy_version",
-              "batch_ref",
-              "batch_index",
-              "batch_count",
-              "item_offset",
-              "source_total_count",
-              "messages"
-            ],
-            "optional": []
-          }
-        ]
-      },
-      "coordination.whatsapp_history.rollback": {
-        "confirmation_policy": "required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Rollback removes only rows inserted by the exact import receipt after proving that no Task, Signal, Artifact, link, attachment or other derived record depends on them. Exact duplicates that predated the import are never removed.",
-          "success_summary": "The exact imported rows were removed atomically, the immutable import ledger was marked rolled_back and the zero-residue readback succeeded."
-        },
-        "availability": "active",
-        "required_role": "admin",
-        "domain": "coordination",
-        "target_entity_types": [
-          "message",
-          "operation_run"
-        ],
-        "required_ref_fields": [
-          "import_ref"
-        ],
-        "creates_entity": "operation_run",
-        "required_existing_dependencies": [
-          "operation_run"
-        ],
-        "use_when": "roll back one exact applied historical WhatsApp import batch while preserving its digest-only audit evidence",
-        "not_for": "deleting pre-existing duplicates, erasing audit receipts, rolling back a batch with derived dependencies, or broad source reset",
-        "payload_guide": "{import_ref,applied_receipt_ref,reason}",
-        "payload_variants": [
-          {
-            "required": [
-              "import_ref",
-              "applied_receipt_ref",
-              "reason"
-            ],
-            "optional": []
           }
         ]
       },
@@ -2946,119 +2401,6 @@
               "sender_ref",
               "audience_user_refs",
               "links"
-            ]
-          }
-        ]
-      },
-      "coordination.artifact.version.create": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "active",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "artifact"
-        ],
-        "required_ref_fields": [
-          "artifact_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "artifact"
-        ],
-        "use_when": "append one immutable R2 content version to an editable long-lived R2 Artifact with optimistic concurrency",
-        "not_for": "Google Drive Artifacts, rewriting an existing version, provider evidence, or retrying after a revision conflict without re-reading",
-        "payload_guide": "{artifact_ref,expected_revision,original_filename,media_type,size_bytes,sha256,change_note?}",
-        "payload_variants": [
-          {
-            "required": [
-              "artifact_ref",
-              "expected_revision",
-              "original_filename",
-              "media_type",
-              "size_bytes",
-              "sha256"
-            ],
-            "optional": [
-              "change_note"
-            ]
-          }
-        ]
-      },
-      "coordination.artifact.upload_finalize": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "active",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "artifact"
-        ],
-        "required_ref_fields": [
-          "artifact_ref",
-          "version_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "artifact"
-        ],
-        "use_when": "verify the exact reserved Artifact bytes and activate the staged immutable version",
-        "not_for": "Google Drive Artifacts, finalizing an unknown digest, changing retention/audience, or selecting another user's Artifact",
-        "payload_guide": "{artifact_ref,version_ref,sha256}",
-        "payload_variants": [
-          {
-            "required": [
-              "artifact_ref",
-              "version_ref",
-              "sha256"
-            ],
-            "optional": []
-          }
-        ]
-      },
-      "coordination.artifact.update": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "active",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "artifact"
-        ],
-        "required_ref_fields": [
-          "artifact_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "artifact"
-        ],
-        "use_when": "optimistically update the mutable Artifact identity, title, lifecycle or retention without rewriting content versions",
-        "not_for": "changing immutable blob/version provenance or shortening retention below an active hold",
-        "payload_guide": "{artifact_ref,expected_revision,patch:{title?,lifecycle_state?,retention_class?,expires_at?},note?}",
-        "payload_variants": [
-          {
-            "required": [
-              "artifact_ref",
-              "expected_revision",
-              "patch"
-            ],
-            "optional": [
-              "note"
             ]
           }
         ]
@@ -3250,7 +2592,7 @@
           }
         ]
       },
-      "coordination.attachment.upload_finalize": {
+      "coordination.artifact.update": {
         "confirmation_policy": "not_required",
         "external_effect": {
           "kind": "none",
@@ -3262,124 +2604,23 @@
         "required_role": "employee",
         "domain": "coordination",
         "target_entity_types": [
-          "attachment"
+          "artifact"
         ],
         "required_ref_fields": [
-          "attachment_ref"
+          "artifact_ref"
         ],
         "creates_entity": null,
         "required_existing_dependencies": [
-          "attachment"
+          "artifact"
         ],
-        "use_when": "legacy alias: verify a reserved 30-day private transfer Artifact and publish its metadata as ready",
-        "not_for": "new long-lived documents; use coordination.artifact.create and coordination.artifact.upload_finalize",
-        "payload_guide": "{attachment_ref,sha256?}",
+        "use_when": "optimistically update the mutable Artifact identity, title, lifecycle or retention without rewriting content versions",
+        "not_for": "changing immutable blob/version provenance or shortening retention below an active hold",
+        "payload_guide": "{artifact_ref,expected_revision,patch:{title?,lifecycle_state?,retention_class?,expires_at?},note?}",
         "payload_variants": [
           {
             "required": [
-              "attachment_ref"
-            ],
-            "optional": [
-              "sha256"
-            ]
-          }
-        ]
-      },
-      "coordination.attachment.upload_prepare": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "active",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "attachment"
-        ],
-        "required_ref_fields": [],
-        "creates_entity": "attachment",
-        "required_existing_dependencies": [],
-        "use_when": "legacy alias: reserve one 30-day transfer Artifact before sending or assigning a file",
-        "not_for": "long-lived/versioned documents or new integrations; use coordination.artifact.create",
-        "payload_guide": "{original_filename,media_type,size_bytes,sha256?,message_ref?,task_ref?}",
-        "payload_variants": [
-          {
-            "required": [
-              "original_filename",
-              "media_type",
-              "size_bytes"
-            ],
-            "optional": [
-              "sha256",
-              "message_ref",
-              "task_ref"
-            ]
-          }
-        ]
-      },
-      "coordination.project.create": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "active",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "project"
-        ],
-        "required_ref_fields": [],
-        "creates_entity": "project",
-        "required_existing_dependencies": [],
-        "use_when": "create one canonical internal Coordination Project; the creator becomes its first active lead member",
-        "not_for": "creating a personal Codex Work-System Project, Product record, task hierarchy, or autonomous Project agent",
-        "payload_guide": "{title,summary?,status?:'planned'|'active'}",
-        "payload_variants": [
-          {
-            "required": [
-              "title"
-            ],
-            "optional": [
-              "summary",
-              "status"
-            ]
-          }
-        ]
-      },
-      "coordination.project.update": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "active",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "project"
-        ],
-        "required_ref_fields": [
-          "project_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "project"
-        ],
-        "use_when": "change title, summary, or lifecycle of one Project where the authenticated user is an active member; Admin has the global override",
-        "not_for": "Product, Production, Finance, provider, credential, or external-messaging changes",
-        "payload_guide": "{project_ref,patch:{title?,summary?,status?:'planned'|'active'|'paused'|'completed'|'cancelled'},note?}",
-        "payload_variants": [
-          {
-            "required": [
-              "project_ref",
+              "artifact_ref",
+              "expected_revision",
               "patch"
             ],
             "optional": [
@@ -3388,7 +2629,7 @@
           }
         ]
       },
-      "coordination.project.member.add": {
+      "coordination.artifact.upload_finalize": {
         "confirmation_policy": "not_required",
         "external_effect": {
           "kind": "none",
@@ -3400,112 +2641,31 @@
         "required_role": "employee",
         "domain": "coordination",
         "target_entity_types": [
-          "project",
-          "plugin_user"
+          "artifact"
         ],
         "required_ref_fields": [
-          "project_ref",
-          "user_ref"
+          "artifact_ref",
+          "version_ref"
         ],
         "creates_entity": null,
         "required_existing_dependencies": [
-          "project",
-          "plugin_user"
+          "artifact"
         ],
-        "use_when": "add or reactivate one verified active person as a Project member or lead where the actor is already an active member; Admin has the global override",
-        "not_for": "granting Product, Production, Finance, provider, external-messaging, plugin-role, or OAuth rights",
-        "payload_guide": "{project_ref,user_ref,membership_role?:'member'|'lead'}",
+        "use_when": "verify the exact reserved Artifact bytes and activate the staged immutable version",
+        "not_for": "Google Drive Artifacts, finalizing an unknown digest, changing retention/audience, or selecting another user's Artifact",
+        "payload_guide": "{artifact_ref,version_ref,sha256}",
         "payload_variants": [
           {
             "required": [
-              "project_ref",
-              "user_ref"
-            ],
-            "optional": [
-              "membership_role"
-            ]
-          }
-        ]
-      },
-      "coordination.project.member.remove": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "active",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "project",
-          "plugin_user"
-        ],
-        "required_ref_fields": [
-          "project_ref",
-          "user_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "project",
-          "plugin_user"
-        ],
-        "use_when": "remove one active Project membership where the actor is an active member; Admin has the global override",
-        "not_for": "removing the final active member, revoking plugin identity, or changing Product/Production action rights",
-        "payload_guide": "{project_ref,user_ref,note?}",
-        "payload_variants": [
-          {
-            "required": [
-              "project_ref",
-              "user_ref"
-            ],
-            "optional": [
-              "note"
-            ]
-          }
-        ]
-      },
-      "coordination.project.link.add": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "active",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "project",
-          "link",
-          "meeting",
-          "message",
-          "signal"
-        ],
-        "required_ref_fields": [
-          "project_ref",
-          "target_ref"
-        ],
-        "creates_entity": "link",
-        "required_existing_dependencies": [
-          "project"
-        ],
-        "use_when": "attach one visible Meeting, Message, or Signal to a Project through one canonical typed link",
-        "not_for": "Task containment, Product writes, external delivery, arbitrary link types, or linking an entity the actor cannot read",
-        "payload_guide": "{project_ref,target_ref}; target_ref must be sr:meeting, sr:message, or sr:signal",
-        "payload_variants": [
-          {
-            "required": [
-              "project_ref",
-              "target_ref"
+              "artifact_ref",
+              "version_ref",
+              "sha256"
             ],
             "optional": []
           }
         ]
       },
-      "coordination.project.link.remove": {
+      "coordination.artifact.version.create": {
         "confirmation_policy": "not_required",
         "external_effect": {
           "kind": "none",
@@ -3517,29 +2677,63 @@
         "required_role": "employee",
         "domain": "coordination",
         "target_entity_types": [
-          "project",
-          "link",
-          "meeting",
-          "message",
-          "signal"
+          "artifact"
         ],
         "required_ref_fields": [
-          "project_ref",
-          "target_ref"
+          "artifact_ref"
         ],
         "creates_entity": null,
         "required_existing_dependencies": [
-          "project",
-          "link"
+          "artifact"
         ],
-        "use_when": "remove one active canonical Project link without deleting its audit history",
-        "not_for": "removing Task containment, deleting source records, or changing Product/Production rights",
-        "payload_guide": "{project_ref,target_ref}; target_ref must be sr:meeting, sr:message, or sr:signal",
+        "use_when": "append one immutable R2 content version to an editable long-lived R2 Artifact with optimistic concurrency",
+        "not_for": "Google Drive Artifacts, rewriting an existing version, provider evidence, or retrying after a revision conflict without re-reading",
+        "payload_guide": "{artifact_ref,expected_revision,original_filename,media_type,size_bytes,sha256,change_note?}",
         "payload_variants": [
           {
             "required": [
-              "project_ref",
-              "target_ref"
+              "artifact_ref",
+              "expected_revision",
+              "original_filename",
+              "media_type",
+              "size_bytes",
+              "sha256"
+            ],
+            "optional": [
+              "change_note"
+            ]
+          }
+        ]
+      },
+      "coordination.priority_item.complete": {
+        "confirmation_policy": "not_required",
+        "external_effect": {
+          "kind": "none",
+          "mode": "internal_only",
+          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
+          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
+        },
+        "availability": "active",
+        "required_role": "admin",
+        "domain": "coordination",
+        "target_entity_types": [
+          "priority_item"
+        ],
+        "required_ref_fields": [
+          "priority_item_ref"
+        ],
+        "creates_entity": null,
+        "required_existing_dependencies": [
+          "priority_item"
+        ],
+        "use_when": "mark one Admin priority board card done using its current revision",
+        "not_for": "completing an archived Coordination task or overwriting a stale board revision",
+        "payload_guide": "{priority_item_ref,expected_revision}",
+        "payload_variants": [
+          {
+            "required": [
+              "priority_item_ref",
+              "expected_revision"
             ],
             "optional": []
           }
@@ -3617,810 +2811,77 @@
           }
         ]
       },
-      "coordination.priority_item.complete": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "active",
-        "required_role": "admin",
-        "domain": "coordination",
-        "target_entity_types": [
-          "priority_item"
-        ],
-        "required_ref_fields": [
-          "priority_item_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "priority_item"
-        ],
-        "use_when": "mark one Admin priority board card done using its current revision",
-        "not_for": "completing an archived Coordination task or overwriting a stale board revision",
-        "payload_guide": "{priority_item_ref,expected_revision}",
-        "payload_variants": [
-          {
-            "required": [
-              "priority_item_ref",
-              "expected_revision"
-            ],
-            "optional": []
-          }
-        ]
-      },
-      "coordination.entity_context_link.add": {
+      "coordination.whatsapp_history.import": {
         "confirmation_policy": "required",
         "external_effect": {
           "kind": "none",
           "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
+          "claim_boundary": "Prepare is a write-free dry-run. Execute may commit only the exact bounded historical WhatsApp batch, its digest-only import ledger, attachment metadata and canonical receipt. It never sends, replies, enriches, or contacts WhatsApp.",
+          "success_summary": "One bounded historical WhatsApp batch was atomically imported or exactly deduplicated and independently read back; provider delivery is not implied."
         },
         "availability": "active",
         "required_role": "admin",
         "domain": "coordination",
         "target_entity_types": [
-          "project",
-          "task",
           "message",
-          "signal",
-          "meeting",
-          "artifact",
-          "link"
-        ],
-        "required_ref_fields": [
-          "target_ref"
-        ],
-        "creates_entity": "link",
-        "required_existing_dependencies": [],
-        "use_when": "add or reactivate one source-grounded context link on exactly one canonical Project or Task after independently authorizing the target and source",
-        "not_for": "copying raw source content, replacing existing Project links or Task provenance/context_url, linking a private source across actors, arbitrary HTTP URLs, Product/UI writes, or unconfirmed backfill mutation",
-        "payload_guide": "internal {target_ref,source_kind:'message'|'signal'|'meeting'|'artifact',source_ref,relation:'source'|'evidence'|'context'|'decision'|'output'|'reference',summary_redacted,visibility:'team'|'participants'|'admin',evidence_digest}; external {target_ref,source_kind:'external_url',source_url,provenance_ref,relation,summary_redacted,visibility,evidence_digest}",
-        "payload_variants": [
-          {
-            "required": [
-              "target_ref",
-              "source_kind",
-              "source_ref",
-              "relation",
-              "summary_redacted",
-              "visibility",
-              "evidence_digest"
-            ],
-            "optional": []
-          },
-          {
-            "required": [
-              "target_ref",
-              "source_kind",
-              "source_url",
-              "provenance_ref",
-              "relation",
-              "summary_redacted",
-              "visibility",
-              "evidence_digest"
-            ],
-            "optional": []
-          }
-        ]
-      },
-      "coordination.entity_context_link.remove": {
-        "confirmation_policy": "required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "active",
-        "required_role": "admin",
-        "domain": "coordination",
-        "target_entity_types": [
-          "project",
-          "task",
-          "link"
-        ],
-        "required_ref_fields": [
-          "context_link_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "link",
           "operation_run"
         ],
-        "use_when": "remove one active entity context link using the exact add receipt and evidence digest while preserving immutable lifecycle/audit records",
-        "not_for": "hard deletion, removing legacy Project links or Task provenance/context_url, broad reset, cross-actor cleanup, or changed-evidence overwrite",
-        "payload_guide": "{context_link_ref,applied_receipt_ref,expected_evidence_digest,reason}",
+        "required_ref_fields": [
+          "source_ref"
+        ],
+        "creates_entity": "operation_run",
+        "required_existing_dependencies": [],
+        "use_when": "dry-run and, after explicit confirmation, atomically import one 1..25 item batch from one registered historical WhatsApp source with stable provider keys and immutable provenance digests",
+        "not_for": "source parsing, unregistered chats, inferred identities or visibility, direct SQL/webhook writes, external WhatsApp sends, unbounded files, or mixing source snapshots",
+        "payload_guide": "{source_ref,source_snapshot_digest,secret_policy_version,batch_ref,batch_index,batch_count,item_offset,source_total_count,messages:[{provider_message_key,external_conversation_id,external_sender_id,sender_display,occurred_at,payload_digest,source_content_digest,scanner_version,secret_disposition:'verbatim'|'redact'|'quarantine'|'exclude',body_markdown?,secret_scan?,false_positive_reason?,attachments?:[{provider_attachment_key,original_filename?,media_type?,size_bytes?,sha256?,metadata?}]}] (1..25)}",
         "payload_variants": [
           {
             "required": [
-              "context_link_ref",
+              "source_ref",
+              "source_snapshot_digest",
+              "secret_policy_version",
+              "batch_ref",
+              "batch_index",
+              "batch_count",
+              "item_offset",
+              "source_total_count",
+              "messages"
+            ],
+            "optional": []
+          }
+        ]
+      },
+      "coordination.whatsapp_history.rollback": {
+        "confirmation_policy": "required",
+        "external_effect": {
+          "kind": "none",
+          "mode": "internal_only",
+          "claim_boundary": "Rollback removes only rows inserted by the exact import receipt after proving that no Task, Signal, Artifact, link, attachment or other derived record depends on them. Exact duplicates that predated the import are never removed.",
+          "success_summary": "The exact imported rows were removed atomically, the immutable import ledger was marked rolled_back and the zero-residue readback succeeded."
+        },
+        "availability": "active",
+        "required_role": "admin",
+        "domain": "coordination",
+        "target_entity_types": [
+          "message",
+          "operation_run"
+        ],
+        "required_ref_fields": [
+          "import_ref"
+        ],
+        "creates_entity": "operation_run",
+        "required_existing_dependencies": [
+          "operation_run"
+        ],
+        "use_when": "roll back one exact applied historical WhatsApp import batch while preserving its digest-only audit evidence",
+        "not_for": "deleting pre-existing duplicates, erasing audit receipts, rolling back a batch with derived dependencies, or broad source reset",
+        "payload_guide": "{import_ref,applied_receipt_ref,reason}",
+        "payload_variants": [
+          {
+            "required": [
+              "import_ref",
               "applied_receipt_ref",
-              "expected_evidence_digest",
               "reason"
-            ],
-            "optional": []
-          }
-        ]
-      },
-      "coordination.task.cancel": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "notification",
-          "mode": "receipt_required",
-          "claim_boundary": "Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.",
-          "success_summary": "Internal Task state committed and independently read back; each Task-notification and WhatsApp delivery state is reported separately from its canonical receipt."
-        },
-        "availability": "blocked",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "task"
-        ],
-        "required_ref_fields": [
-          "task_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "task"
-        ],
-        "use_when": "cancel one task through active Project membership or global Admin override",
-        "not_for": "hard-deleting task history or changing Product/Production state",
-        "payload_guide": "{task_ref,reason?,source?:{kind:'manual'|'message'|'signal'|'external',ref?,quote?,author_ref?,author_display?,occurred_at?,evidence_ref?}}",
-        "payload_variants": [
-          {
-            "required": [
-              "task_ref"
-            ],
-            "optional": [
-              "reason",
-              "source",
-              "source_message_ref"
-            ]
-          }
-        ]
-      },
-      "coordination.task.complete": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "notification",
-          "mode": "receipt_required",
-          "claim_boundary": "Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.",
-          "success_summary": "Internal Task state committed and independently read back; each Task-notification and WhatsApp delivery state is reported separately from its canonical receipt."
-        },
-        "availability": "blocked",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "task"
-        ],
-        "required_ref_fields": [
-          "task_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "task"
-        ],
-        "use_when": "complete one human-assigned task through active Project membership or global Admin override",
-        "not_for": "accepting an SR Agent result, which requires coordination.task.review.accept, deleting audit history, or changing Product/Production state",
-        "payload_guide": "{task_ref,note?,source?:{kind:'manual'|'message'|'signal'|'external',ref?,quote?,author_ref?,author_display?,occurred_at?,evidence_ref?}}",
-        "payload_variants": [
-          {
-            "required": [
-              "task_ref"
-            ],
-            "optional": [
-              "note",
-              "source",
-              "source_message_ref"
-            ]
-          }
-        ]
-      },
-      "coordination.task.create": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "notification",
-          "mode": "receipt_required",
-          "claim_boundary": "Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.",
-          "success_summary": "Internal Task state committed and independently read back; each Task-notification and WhatsApp delivery state is reported separately from its canonical receipt."
-        },
-        "availability": "blocked",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "task",
-          "plugin_user",
-          "project",
-          "person"
-        ],
-        "required_ref_fields": [
-          "assignee_ref"
-        ],
-        "creates_entity": "task",
-        "required_existing_dependencies": [
-          "person"
-        ],
-        "use_when": "create one compact internal Coordination task with exactly one canonical personal Assignee; Project remains optional",
-        "not_for": "creating an unassigned normal Task, creating a Linear issue, task hierarchy, a versioned intake/backfill exception, separate automation model, or bypassing backend-owned Project/member authorization when refs are supplied",
-        "payload_guide": "{title,objective,assignee_ref,project_ref?,details_markdown?,status?:'backlog'|'planned'|'active'|'blocked'|'completed'|'cancelled',priority?:'P0'|'P1'|'P2'|'P3'|'P4'|'P5',due_at?,source?:{kind:'manual'|'message'|'signal'|'external',ref?,quote?,author_ref?,author_display?,occurred_at?,evidence_ref?},source_message_ref?,issue_ref?,context_url?,attachment_refs?:[...]}; assignee_ref is exactly one canonical sr:person ref; priority defaults to P3 and P0 is highest",
-        "payload_variants": [
-          {
-            "required": [
-              "title",
-              "objective",
-              "assignee_ref"
-            ],
-            "optional": [
-              "project_ref",
-              "details_markdown",
-              "status",
-              "priority",
-              "due_at",
-              "source",
-              "source_message_ref",
-              "issue_ref",
-              "context_url",
-              "attachment_refs"
-            ]
-          }
-        ]
-      },
-      "coordination.task.link.add": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "blocked",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "task",
-          "link"
-        ],
-        "required_ref_fields": [
-          "task_ref",
-          "related_task_ref"
-        ],
-        "creates_entity": "link",
-        "required_existing_dependencies": [
-          "task"
-        ],
-        "use_when": "add the one canonical unordered task_related link between two existing Tasks the authenticated user may change",
-        "not_for": "task hierarchy, dependency scheduling, arbitrary link types, self-links, or linking a Task the actor cannot change",
-        "payload_guide": "{task_ref,related_task_ref}; link_type is fixed server-side to task_related and the pair is canonicalized",
-        "payload_variants": [
-          {
-            "required": [
-              "task_ref",
-              "related_task_ref"
-            ],
-            "optional": []
-          }
-        ]
-      },
-      "coordination.task.link.remove": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "blocked",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "task",
-          "link"
-        ],
-        "required_ref_fields": [
-          "task_ref",
-          "related_task_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "task",
-          "link"
-        ],
-        "use_when": "remove the active canonical task_related link between two existing Tasks the authenticated user may change",
-        "not_for": "deleting Task or link audit history, dependency scheduling, arbitrary link types, or removing links to a Task the actor cannot change",
-        "payload_guide": "{task_ref,related_task_ref}; link_type is fixed server-side to task_related and the pair is canonicalized",
-        "payload_variants": [
-          {
-            "required": [
-              "task_ref",
-              "related_task_ref"
-            ],
-            "optional": []
-          }
-        ]
-      },
-      "coordination.task.comment.create": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "notification",
-          "mode": "receipt_required",
-          "claim_boundary": "Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.",
-          "success_summary": "Internal Task state committed and independently read back; each Task-notification and WhatsApp delivery state is reported separately from its canonical receipt."
-        },
-        "availability": "blocked",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "task"
-        ],
-        "required_ref_fields": [
-          "task_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "task"
-        ],
-        "use_when": "add one chronological comment or reply to a Task through active Project membership or global Admin override; Prepare may be followed immediately by Execute",
-        "not_for": "commenting outside an authorized Project, editing task fields, sending an external message, or fabricating another author",
-        "payload_guide": "{task_ref,body_markdown,parent_comment_ref?}",
-        "payload_variants": [
-          {
-            "required": [
-              "task_ref",
-              "body_markdown"
-            ],
-            "optional": [
-              "parent_comment_ref"
-            ]
-          }
-        ]
-      },
-      "coordination.task_proposal.accept": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "notification",
-          "mode": "receipt_required",
-          "claim_boundary": "Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.",
-          "success_summary": "Internal Task state committed and independently read back; each Task-notification and WhatsApp delivery state is reported separately from its canonical receipt."
-        },
-        "availability": "blocked",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "task_proposal",
-          "task",
-          "project"
-        ],
-        "required_ref_fields": [
-          "proposal_ref",
-          "project_ref"
-        ],
-        "creates_entity": "task",
-        "required_existing_dependencies": [
-          "task_proposal",
-          "plugin_user",
-          "project"
-        ],
-        "use_when": "the original requester accepts one pending or deferred Meeting task proposal and atomically creates its source-grounded Coordination task",
-        "not_for": "accepting an SR Agent result, editing proposal content, or accepting on behalf of another requester",
-        "payload_guide": "{proposal_ref,project_ref,assignee_ref?,note?}; project_ref is always required and assignee_ref is required only when the immutable proposal has no resolved assignee",
-        "payload_variants": [
-          {
-            "required": [
-              "proposal_ref",
-              "project_ref"
-            ],
-            "optional": [
-              "assignee_ref",
-              "note"
-            ]
-          }
-        ]
-      },
-      "coordination.task_proposal.defer": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "blocked",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "task_proposal"
-        ],
-        "required_ref_fields": [
-          "proposal_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "task_proposal"
-        ],
-        "use_when": "the original requester postpones one pending Meeting task proposal without creating a task",
-        "not_for": "scheduling an automatic future acceptance or mutating proposal content",
-        "payload_guide": "{proposal_ref,reason?}",
-        "payload_variants": [
-          {
-            "required": [
-              "proposal_ref"
-            ],
-            "optional": [
-              "reason"
-            ]
-          }
-        ]
-      },
-      "coordination.task_proposal.reject": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "blocked",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "task_proposal"
-        ],
-        "required_ref_fields": [
-          "proposal_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "task_proposal"
-        ],
-        "use_when": "the original requester permanently rejects one pending or deferred Meeting task proposal",
-        "not_for": "requesting a revised proposal or rejecting an SR Agent task result",
-        "payload_guide": "{proposal_ref,reason?}",
-        "payload_variants": [
-          {
-            "required": [
-              "proposal_ref"
-            ],
-            "optional": [
-              "reason"
-            ]
-          }
-        ]
-      },
-      "coordination.task_proposal.request_changes": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "blocked",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "task_proposal"
-        ],
-        "required_ref_fields": [
-          "proposal_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "task_proposal"
-        ],
-        "use_when": "the original requester closes one pending or deferred immutable Meeting proposal with explicit revision feedback",
-        "not_for": "editing the proposal in place; a revised proposal is a new entity",
-        "payload_guide": "{proposal_ref,feedback}",
-        "payload_variants": [
-          {
-            "required": [
-              "proposal_ref",
-              "feedback"
-            ],
-            "optional": []
-          }
-        ]
-      },
-      "coordination.task.update": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "notification",
-          "mode": "receipt_required",
-          "claim_boundary": "Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.",
-          "success_summary": "Internal Task state committed and independently read back; each Task-notification and WhatsApp delivery state is reported separately from its canonical receipt."
-        },
-        "availability": "blocked",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "task"
-        ],
-        "required_ref_fields": [
-          "task_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "task"
-        ],
-        "use_when": "apply one typed patch to an internal task through active Project membership or Admin override while retaining exactly one canonical personal Assignee",
-        "not_for": "changing requester identity, clearing assignee_ref, removing Project assignment, adding task hierarchy, or mutating Product/Production rights",
-        "payload_guide": "{task_ref,patch:{assignee_ref?:sr:person,title?,objective?,details_markdown?,status?:'backlog'|'planned'|'active'|'blocked'|'completed'|'cancelled',priority?:'P0'|'P1'|'P2'|'P3'|'P4'|'P5',due_at?,project_ref?,issue_ref?,context_url?},source?:{kind:'manual'|'message'|'signal'|'external',ref?,quote?,author_ref?,author_display?,occurred_at?,evidence_ref?}}; assignee_ref may change to one canonical person but never null; P0 is highest; project_ref may transfer only to another Project where actor and assignee are active members",
-        "payload_variants": [
-          {
-            "required": [
-              "task_ref",
-              "patch"
-            ],
-            "optional": [
-              "source",
-              "source_message_ref"
-            ]
-          }
-        ]
-      },
-      "coordination.task.review.accept": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "notification",
-          "mode": "receipt_required",
-          "claim_boundary": "Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.",
-          "success_summary": "Internal Task state committed and independently read back; each Task-notification and WhatsApp delivery state is reported separately from its canonical receipt."
-        },
-        "availability": "blocked",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "task"
-        ],
-        "required_ref_fields": [
-          "task_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "task"
-        ],
-        "use_when": "an active Project member or global Admin accepts an SR Agent result in needs_review; this completes the same task and persistent run",
-        "not_for": "completing a human-assigned task or granting Product/Production authority",
-        "payload_guide": "{task_ref,note?,source?:{kind:'manual'|'message'|'signal'|'external',ref?,quote?,author_ref?,author_display?,occurred_at?,evidence_ref?}}",
-        "payload_variants": [
-          {
-            "required": [
-              "task_ref"
-            ],
-            "optional": [
-              "note",
-              "source",
-              "source_message_ref"
-            ]
-          }
-        ]
-      },
-      "coordination.task.review.reject": {
-        "confirmation_policy": "not_required",
-        "external_effect": {
-          "kind": "notification",
-          "mode": "receipt_required",
-          "claim_boundary": "Report only the exact Coordination Task-notification intent and linked WhatsApp delivery stages for this execution; the Task mutation alone never proves a notification was queued, accepted, sent, delivered, or read.",
-          "success_summary": "Internal Task state committed and independently read back; each Task-notification and WhatsApp delivery state is reported separately from its canonical receipt."
-        },
-        "availability": "blocked",
-        "required_role": "employee",
-        "domain": "coordination",
-        "target_entity_types": [
-          "task"
-        ],
-        "required_ref_fields": [
-          "task_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "task"
-        ],
-        "use_when": "an active Project member or global Admin asks for changes to an SR Agent result in needs_review; this requeues the same run in the same persistent thread",
-        "not_for": "creating a replacement task, replacement run, new thread, or granting Product/Production authority",
-        "payload_guide": "{task_ref,feedback,source?:{kind:'manual'|'message'|'signal'|'external',ref?,quote?,author_ref?,author_display?,occurred_at?,evidence_ref?}}",
-        "payload_variants": [
-          {
-            "required": [
-              "task_ref",
-              "feedback"
-            ],
-            "optional": [
-              "source",
-              "source_message_ref"
-            ]
-          }
-        ]
-      },
-      "application.accept": {
-        "confirmation_policy": "required",
-        "external_effect": {
-          "kind": "email",
-          "mode": "receipt_required",
-          "claim_boundary": "Use only the Main App-owned delivery intent and its current canonical stage; internal acceptance alone never proves sending or delivery.",
-          "success_summary": "Application accepted and Booking read back internally; email state is reported separately from the canonical Main App receipt."
-        },
-        "availability": "active",
-        "required_role": "employee",
-        "domain": "booking",
-        "target_entity_types": [
-          "application",
-          "booking"
-        ],
-        "required_ref_fields": [
-          "application_ref"
-        ],
-        "creates_entity": "booking",
-        "required_existing_dependencies": [
-          "application"
-        ],
-        "use_when": "accept one existing open application",
-        "not_for": "rejecting or moving a booking",
-        "payload_guide": "{application_ref}",
-        "payload_variants": [
-          {
-            "required": [
-              "application_ref"
-            ],
-            "optional": []
-          }
-        ]
-      },
-      "application.reject": {
-        "confirmation_policy": "required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "blocked",
-        "required_role": "employee",
-        "domain": "booking",
-        "target_entity_types": [
-          "application"
-        ],
-        "required_ref_fields": [
-          "application_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "application"
-        ],
-        "use_when": "request rejection of one application after its separate capability gate",
-        "not_for": "accepting an application",
-        "payload_guide": "blocked in V1: {application_ref,reason?}",
-        "payload_variants": [
-          {
-            "required": [
-              "application_ref"
-            ],
-            "optional": [
-              "reason"
-            ]
-          }
-        ]
-      },
-      "booking.move": {
-        "confirmation_policy": "required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "active",
-        "required_role": "employee",
-        "domain": "booking",
-        "target_entity_types": [
-          "booking",
-          "slot"
-        ],
-        "required_ref_fields": [
-          "from_slot_ref",
-          "to_slot_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "booking",
-          "slot"
-        ],
-        "use_when": "move one existing booking between two identified slots; resolve an ambiguous person through the occupied source slot before preparing",
-        "not_for": "creating a new booking or removing and recreating a booking",
-        "payload_guide": "{from_slot_ref,to_slot_ref}",
-        "payload_variants": [
-          {
-            "required": [
-              "from_slot_ref",
-              "to_slot_ref"
-            ],
-            "optional": []
-          }
-        ]
-      },
-      "booking.remove": {
-        "confirmation_policy": "required",
-        "external_effect": {
-          "kind": "email",
-          "mode": "receipt_required",
-          "claim_boundary": "Use only the Main App-owned cancellation email intent and canonical delivery stage; the cancellation ledger alone proves no delivery.",
-          "success_summary": "Booking removed and cancellation state read back internally; email state is reported separately from the canonical Main App receipt."
-        },
-        "availability": "active",
-        "required_role": "employee",
-        "domain": "booking",
-        "target_entity_types": [
-          "booking",
-          "slot"
-        ],
-        "required_ref_fields": [
-          "booking_ref",
-          "slot_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "booking"
-        ],
-        "use_when": "remove an identified booking or occupied slot without replacing it",
-        "not_for": "rejecting an open application or moving/rescheduling/rebooking a comedian to another slot; use booking.move with both slot refs",
-        "payload_guide": "{booking_ref or slot_ref,reason?,notification_policy?}",
-        "payload_variants": [
-          {
-            "required": [
-              "booking_ref"
-            ],
-            "optional": [
-              "reason",
-              "notification_policy"
-            ]
-          },
-          {
-            "required": [
-              "slot_ref"
-            ],
-            "optional": [
-              "reason",
-              "notification_policy"
-            ]
-          }
-        ]
-      },
-      "comedian.book": {
-        "confirmation_policy": "required",
-        "external_effect": {
-          "kind": "email",
-          "mode": "receipt_required",
-          "claim_boundary": "Use only the versioned Main App Product-policy decision; this operation currently reports not_requested_by_policy rather than inventing a notification.",
-          "success_summary": "Profile booked into the Slot and read back internally; the Main App policy decision is reported separately."
-        },
-        "availability": "active",
-        "required_role": "employee",
-        "domain": "booking",
-        "target_entity_types": [
-          "booking",
-          "profile",
-          "slot"
-        ],
-        "required_ref_fields": [
-          "profile_ref",
-          "slot_ref"
-        ],
-        "creates_entity": "booking",
-        "required_existing_dependencies": [
-          "profile",
-          "slot"
-        ],
-        "use_when": "book one identified comedian into one identified free slot",
-        "not_for": "creating an invitation",
-        "payload_guide": "{profile_ref,slot_ref}",
-        "payload_variants": [
-          {
-            "required": [
-              "profile_ref",
-              "slot_ref"
             ],
             "optional": []
           }
@@ -4494,40 +2955,6 @@
               "scope",
               "reason"
             ]
-          }
-        ]
-      },
-      "event.lineup_message.send": {
-        "confirmation_policy": "required",
-        "external_effect": {
-          "kind": "external_message",
-          "mode": "receipt_required",
-          "claim_boundary": "Use only the exact Event's server-resolved active line-up and the separate Main App email/WhatsApp policy receipts. This action never changes or closes the Event.",
-          "success_summary": "One canonical Line-up message was committed without changing Event status; email and WhatsApp stages are reported separately."
-        },
-        "availability": "active",
-        "required_role": "employee",
-        "domain": "event",
-        "target_entity_types": [
-          "event"
-        ],
-        "required_ref_fields": [
-          "event_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "event"
-        ],
-        "use_when": "send one bounded message to the current active canonical Line-up of one exact Event",
-        "not_for": "closing or changing the Event; supplying recipient IDs, Event title, location, duration, templates, channels, provider configuration, or a free external destination",
-        "payload_guide": "{event_ref,message}; Main App resolves authorization, current active Line-up, Event details, product policy, email and WhatsApp intents",
-        "payload_variants": [
-          {
-            "required": [
-              "event_ref",
-              "message"
-            ],
-            "optional": []
           }
         ]
       },
@@ -4613,42 +3040,6 @@
           }
         ]
       },
-      "event.update": {
-        "confirmation_policy": "required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "active",
-        "required_role": "employee",
-        "domain": "event",
-        "target_entity_types": [
-          "event"
-        ],
-        "required_ref_fields": [
-          "event_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "event"
-        ],
-        "use_when": "change schedule, duration, or location on one identified event",
-        "not_for": "any Event text, ticket-class, or provider-live changes",
-        "payload_guide": "{event_ref,changes:{starts_at RFC3339?,duration_minutes?,location_ref?},expected?}",
-        "payload_variants": [
-          {
-            "required": [
-              "event_ref",
-              "changes"
-            ],
-            "optional": [
-              "expected"
-            ]
-          }
-        ]
-      },
       "event.internal_note.set": {
         "confirmation_policy": "required",
         "external_effect": {
@@ -4678,6 +3069,40 @@
             "required": [
               "event_ref",
               "value"
+            ],
+            "optional": []
+          }
+        ]
+      },
+      "event.lineup_message.send": {
+        "confirmation_policy": "required",
+        "external_effect": {
+          "kind": "external_message",
+          "mode": "receipt_required",
+          "claim_boundary": "Use only the exact Event's server-resolved active line-up and the separate Main App email/WhatsApp policy receipts. This action never changes or closes the Event.",
+          "success_summary": "One canonical Line-up message was committed without changing Event status; email and WhatsApp stages are reported separately."
+        },
+        "availability": "active",
+        "required_role": "employee",
+        "domain": "event",
+        "target_entity_types": [
+          "event"
+        ],
+        "required_ref_fields": [
+          "event_ref"
+        ],
+        "creates_entity": null,
+        "required_existing_dependencies": [
+          "event"
+        ],
+        "use_when": "send one bounded message to the current active canonical Line-up of one exact Event",
+        "not_for": "closing or changing the Event; supplying recipient IDs, Event title, location, duration, templates, channels, provider configuration, or a free external destination",
+        "payload_guide": "{event_ref,message}; Main App resolves authorization, current active Line-up, Event details, product policy, email and WhatsApp intents",
+        "payload_variants": [
+          {
+            "required": [
+              "event_ref",
+              "message"
             ],
             "optional": []
           }
@@ -4748,6 +3173,42 @@
               "value"
             ],
             "optional": []
+          }
+        ]
+      },
+      "event.update": {
+        "confirmation_policy": "required",
+        "external_effect": {
+          "kind": "none",
+          "mode": "internal_only",
+          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
+          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
+        },
+        "availability": "active",
+        "required_role": "employee",
+        "domain": "event",
+        "target_entity_types": [
+          "event"
+        ],
+        "required_ref_fields": [
+          "event_ref"
+        ],
+        "creates_entity": null,
+        "required_existing_dependencies": [
+          "event"
+        ],
+        "use_when": "change schedule, duration, or location on one identified event",
+        "not_for": "any Event text, ticket-class, or provider-live changes",
+        "payload_guide": "{event_ref,changes:{starts_at RFC3339?,duration_minutes?,location_ref?},expected?}",
+        "payload_variants": [
+          {
+            "required": [
+              "event_ref",
+              "changes"
+            ],
+            "optional": [
+              "expected"
+            ]
           }
         ]
       },
@@ -5039,103 +3500,6 @@
           }
         ]
       },
-      "plugin_user.add": {
-        "confirmation_policy": "required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "blocked",
-        "required_role": "admin",
-        "domain": "admin",
-        "target_entity_types": [
-          "profile"
-        ],
-        "required_ref_fields": [],
-        "creates_entity": null,
-        "required_existing_dependencies": [],
-        "use_when": "describe the requested plugin principal after the access phase opens",
-        "not_for": "Product-role grants",
-        "payload_guide": "blocked until access phase: {email,role:'employee'|'admin'}",
-        "payload_variants": [
-          {
-            "required": [
-              "email",
-              "role"
-            ],
-            "optional": []
-          }
-        ]
-      },
-      "plugin_user.disable": {
-        "confirmation_policy": "required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "blocked",
-        "required_role": "admin",
-        "domain": "admin",
-        "target_entity_types": [
-          "profile"
-        ],
-        "required_ref_fields": [
-          "plugin_user_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "profile"
-        ],
-        "use_when": "disable a plugin principal after the access phase opens",
-        "not_for": "changing Product access",
-        "payload_guide": "blocked until access phase: {plugin_user_ref}",
-        "payload_variants": [
-          {
-            "required": [
-              "plugin_user_ref"
-            ],
-            "optional": []
-          }
-        ]
-      },
-      "plugin_user.set_role": {
-        "confirmation_policy": "required",
-        "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
-        },
-        "availability": "blocked",
-        "required_role": "admin",
-        "domain": "admin",
-        "target_entity_types": [
-          "profile"
-        ],
-        "required_ref_fields": [
-          "plugin_user_ref"
-        ],
-        "creates_entity": null,
-        "required_existing_dependencies": [
-          "profile"
-        ],
-        "use_when": "change a plugin principal role after the access phase opens",
-        "not_for": "changing canonical Product roles",
-        "payload_guide": "blocked until access phase: {plugin_user_ref,role:'employee'|'admin'}",
-        "payload_variants": [
-          {
-            "required": [
-              "plugin_user_ref",
-              "role"
-            ],
-            "optional": []
-          }
-        ]
-      },
       "product_access.change_role": {
         "confirmation_policy": "required",
         "external_effect": {
@@ -5204,6 +3568,40 @@
               "profile_ref",
               "organization_ref",
               "role"
+            ],
+            "optional": []
+          }
+        ]
+      },
+      "profile.editorial.update": {
+        "confirmation_policy": "required",
+        "external_effect": {
+          "kind": "none",
+          "mode": "internal_only",
+          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
+          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
+        },
+        "availability": "active",
+        "required_role": "employee",
+        "domain": "booking",
+        "target_entity_types": [
+          "profile"
+        ],
+        "required_ref_fields": [
+          "profile_ref"
+        ],
+        "creates_entity": null,
+        "required_existing_dependencies": [
+          "profile"
+        ],
+        "use_when": "update explicitly supplied comedian editorial fields through the same canonical permission as the Web comedian form",
+        "not_for": "changing account identity, email, staff roles, payment details, or arbitrary profile columns",
+        "payload_guide": "{profile_ref,patch:{name?:string(1..200),description?:string|null,region?:string|null,membership?:'Platin'|'Gold'|'Silber'|'Bronze'|null,is_female?:boolean,hide_from_website?:boolean,instagram?:string|null,facebook?:string|null,youtube?:string|null,twitter?:string|null,video_link?:string|null}}; nonempty patch; nullable text max 5000 characters",
+        "payload_variants": [
+          {
+            "required": [
+              "profile_ref",
+              "patch"
             ],
             "optional": []
           }

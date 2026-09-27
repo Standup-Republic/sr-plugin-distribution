@@ -7,7 +7,7 @@
       "startup_timeout_sec": 45,
       "tool_timeout_sec": 60,
       "http_headers": {
-        "X-SR-Plugin-Version": "0.8.8+distribution.1"
+        "X-SR-Plugin-Version": "0.9.0"
       }
     }
   }

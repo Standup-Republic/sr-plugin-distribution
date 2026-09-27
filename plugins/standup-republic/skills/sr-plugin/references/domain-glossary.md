@@ -26,13 +26,17 @@ do not force internal terminology into the final answer.
   access and events.
 - **Product role/access:** authorization inside the SR product, such as
   Comedian, Veranstalter, Administrator, or Customer.
-- **Plugin role:** authorization to use this internal plugin as Employee or
-  Admin. It is separate from Product roles and must never be inferred from one.
+- **Staff tier:** canonical Admin or Super-Admin membership admitting the personal
+  SR identity to native OAuth. Supported operations use canonical Web permissions
+  within the explicit plugin catalog; no separate plugin role is assigned.
 
 ## Internal Coordination
 
-- **Plugin user:** allowlisted internal Plugin identity with its own role,
-  scopes, revocation state, and optional Product actor mapping.
+Except for the minimal board, these source records require an explicitly
+connected live adapter; historical storage does not imply native OAuth access.
+
+- **Historical plugin user:** retired parallel identity model; native OAuth uses
+  the canonical Supabase person and does not offer plugin-user management.
 - **Message:** permission-filtered communication record from direct
   Coordination or an ingested text channel. It is not by itself proof of an
   external notification or complete source coverage.
@@ -40,16 +44,15 @@ do not force internal terminology into the final answer.
   state, status, numeric priority, optional blocker/deadline, order, and revision.
   It has no assignee, Project, comments, or attachments. Historical
   `sr:task:*` Coordination tasks remain archived and are never board cards.
-- **Attachment:** private bounded file object with short-lived transfer grants;
-  never expose or persist a grant. Existing 30-day file sends are compatibility
-  views over canonical Artifacts.
+- **Attachment:** retired public alias for historical file transfers; use a
+  connected Artifact capability if available. Never expose a stored grant.
 - **Artifact:** stable identity backed exclusively by immutable private R2
   content versions or one verified link-only Google Drive file. Drive content
   and permissions remain at Google; lifecycle, retention, audience grants,
   provider metadata and links are audited. Raw provider and Meeting evidence
   is immutable.
-- **Signal/link:** stored bounded operational signal or typed relationship.
-  Coverage depends on the active source collectors and their freshness.
+- **Signal:** retired legacy coordination record, not an active plugin entity.
+- **Link:** typed source relationship, usable only through a connected capability.
 - **Activity event:** redacted team-visible Coordination activity. It excludes
   message bodies, prompts, file grants, and raw tool arguments.
 

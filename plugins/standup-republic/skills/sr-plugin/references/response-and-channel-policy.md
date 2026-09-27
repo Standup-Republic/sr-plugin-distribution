@@ -114,28 +114,11 @@ When identity, channel binding, intent, manifest freshness, or target state no
 longer matches, do not Execute; explain the smallest missing or expired
 boundary in one concise answer.
 
-## Admin Batch And Temporary Session Parity
+## Connected Action Policy
 
-Codex, ChatGPT, and a verified WhatsApp DM use the same Admin-policy contract.
-`batch.execute` may freeze 2–50 eligible actions from one explicit related
-intent into one best-effort manifest, one preview, and one confirmation.
-Independent manifests never become a batch merely because the user says
-“alles bestätigen”. After Execute, report partial failure, resume position,
-rollback requirement, and verified child end states without exposing raw
-receipts.
-
-`admin_session.activate` requires one visible preview and a new explicit
-confirmation. It binds the approval to the authenticated person and current
-thread or DM for at most four hours. It adds no role, scope, operation, or
-provider permission and never covers Finance, Payment, Payout, Credential,
-Identity/Role, destructive, irreversible, or provider-wide actions. Read its
-status and remaining time canonically; revoke it immediately on request.
-
-A session never crosses users, Codex/ChatGPT threads, WhatsApp DMs, or surfaces.
-WhatsApp groups cannot activate or use one. Expiry, revocation, identity drift,
-scope drift, or channel drift ends the no-repeat-confirmation behavior. The
-current Prepare result remains authoritative: only a manifest returned as
-`not_required` may execute without another confirmation.
+Native OAuth has no temporary plugin Admin sessions. Use only operations exposed
+by the live connected catalog and follow each manifest's confirmation policy.
+Do not substitute a historical batch/session workflow for missing adapters.
 
 ## Channel Rules
 

@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "source": "Standup-Republic/agents",
+  "rulesHash": "2d805880de0237ae5c90f0574611c4c2c59a1dba0df06badc5ceca1a679c6de6",
+  "files": {
+    ".agents/references/development/change-authorization.md": {
+      "hash": "5b672e7901ba9938e8a16c125c0762fa60ec557a35cc924bab31a985332e3e8b",
+      "mode": "100644"
+    },
+    ".agents/references/development/interface-quality.md": {
+      "hash": "b47d0d69f53ac67027ae3f68cb90a9d7070a7c207c71623417d5e339e5534f07",
+      "mode": "100644"
+    },
+    ".agents/references/development/working-conventions.md": {
+      "hash": "658e09d32d00c371dfb213c8eb6cfea63c0590f02b6ac2a2371f5b6e7379e29e",
+      "mode": "100644"
+    },
+    ".agents/skills/sr-development/SKILL.md": {
+      "hash": "704514b93e1d45e1ee0a1dabea19e2e7b04e5cc134fabf313fe2d221d3758b57",
+      "mode": "100644"
+    }
+  }
+}

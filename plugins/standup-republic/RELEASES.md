@@ -1,3 +1,17 @@
+## Bulk venue correction candidate — not deployed
+
+- Adds one required-confirmation preview for an exact set of 1–200 upcoming,
+  non-cancelled Events from one Show/source venue to an active destination.
+- The paired Main App migration and MCP registry must be released first.
+  Event IDs, times, applications and Bookings are retained; Show activation,
+  Slot visibility and messaging are separate. No existing-data correction is
+  bundled or authorized by this package.
+- Generated contracts are refreshed from the current Tools source, also bringing
+  its existing Event Abrechnung and application-requirement metadata up to date.
+- Personal Pro content advances to the unpublished 0.9.1 candidate. The 0.9.0
+  publication baseline is retained. Package publication, runtime availability and
+  authenticated user acceptance are separate release gates.
+
 ## 0.9.0 — Native SR identity and bounded Web permissions (2026-09-27)
 
 Prepared for coordinated App/MCP rollout; package publication and personal-account acceptance are separate release steps.

@@ -3212,6 +3212,88 @@
           }
         ]
       },
+      "event.venue.bulk_set": {
+        "confirmation_policy": "required",
+        "external_effect": {
+          "kind": "none",
+          "mode": "internal_only",
+          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
+          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
+        },
+        "availability": "active",
+        "required_role": "employee",
+        "domain": "event",
+        "target_entity_types": [
+          "event"
+        ],
+        "required_ref_fields": [
+          "event_refs",
+          "show_ref",
+          "from_location_ref",
+          "to_location_ref"
+        ],
+        "creates_entity": null,
+        "required_existing_dependencies": [
+          "event",
+          "show",
+          "location"
+        ],
+        "use_when": "atomically change the venue of an exact frozen set of upcoming, non-cancelled Events from one Show and source Location after one preview and confirmation",
+        "not_for": "live filters, past/cancelled/closed Events, Show activation, Slot visibility, rescheduling, rebooking, messages or ticket-provider updates",
+        "payload_guide": "{event_refs:1..200 unique exact Event refs,show_ref,from_location_ref,to_location_ref}; all Events must still belong to that Show/source Location, be upcoming and open, and the destination must be active. One atomic transaction preserves Event IDs, times, Slots, applications and Bookings. No automatic Show reactivation or notification delivery is implied.",
+        "payload_variants": [
+          {
+            "required": [
+              "event_refs",
+              "show_ref",
+              "from_location_ref",
+              "to_location_ref"
+            ],
+            "optional": []
+          }
+        ]
+      },
+      "event_economics.entry.set": {
+        "confirmation_policy": "required",
+        "external_effect": {
+          "kind": "none",
+          "mode": "internal_only",
+          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
+          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
+        },
+        "availability": "active",
+        "required_role": "admin",
+        "domain": "finance",
+        "target_entity_types": [
+          "event",
+          "show"
+        ],
+        "required_ref_fields": [
+          "target_ref"
+        ],
+        "creates_entity": null,
+        "required_existing_dependencies": [
+          "event",
+          "show"
+        ],
+        "use_when": "set a fixed net EUR income or cost entry in Event Abrechnung for one Comedyflash Event or every past and future Event of one resolved Show; canonical Super-Admin finance access is required",
+        "not_for": "payments, invoices, payouts, VAT assumptions, provider changes, source-fact replacement, or percentage calculations",
+        "payload_guide": "{target_ref:'sr:event:<id>'|'sr:show:<id>',category:'tickets'|'other_income'|'ticket_fee'|'processor'|'gage'|'travel'|'ksk'|'service'|'venue'|'advertising'|'other',label:string(2..200),amount_minor:integer net EUR cents,source?:string,quality?:'confirmed'|'inferred'|'planned'}. A Show target applies the amount PER EVENT, including newly created events. Same target/category/label updates the existing manual entry; duplicate matches require Web review. Rent uses venue. 400 EUR = 40000 cents. Missing invoices remain open. Prepare displays affected count and before/after; never execute an unconfirmed series-wide change.",
+        "payload_variants": [
+          {
+            "required": [
+              "target_ref",
+              "category",
+              "label",
+              "amount_minor"
+            ],
+            "optional": [
+              "source",
+              "quality"
+            ]
+          }
+        ]
+      },
       "export.generate": {
         "confirmation_policy": "required",
         "external_effect": {
@@ -3938,10 +4020,10 @@
       "spot_mode.set": {
         "confirmation_policy": "required",
         "external_effect": {
-          "kind": "none",
-          "mode": "internal_only",
-          "claim_boundary": "Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.",
-          "success_summary": "Canonical internal state applied and independently read back; no external effect is implied."
+          "kind": "email",
+          "mode": "receipt_required",
+          "claim_boundary": "An explicit application-requirement change uses the canonical Main App pipeline for affected pending applicants. Only its delivery receipt proves an email stage. Mode-only requests preserve the existing setting and request no email; zero affected applicants means no notification.",
+          "success_summary": "Slot modes and any explicitly requested application requirement applied and read back; pending-application and email outcomes are reported separately from canonical receipts."
         },
         "availability": "active",
         "required_role": "employee",
@@ -3956,16 +4038,18 @@
         "required_existing_dependencies": [
           "slot"
         ],
-        "use_when": "set private/public mode on a frozen set of slots",
-        "not_for": "creating slots",
-        "payload_guide": "{slot_refs:[1..200],mode:'private'|'public'}",
+        "use_when": "set private/public mode on a frozen set of existing slots; optionally require or disable application approval when opening public slots",
+        "not_for": "creating slots or removing a booked comedian",
+        "payload_guide": "{slot_refs:[1..200],mode:'private'|'public',requires_verification?:boolean}; requires_verification is supported only with mode:'public'. true requires an application to be accepted before booking; false permits direct booking. Omit it to preserve the existing setting. Curation spots keep their canonical fixed mode. Preview the exact slot modes, application requirements and pending-application effects before confirming.",
         "payload_variants": [
           {
             "required": [
               "slot_refs",
               "mode"
             ],
-            "optional": []
+            "optional": [
+              "requires_verification"
+            ]
           }
         ]
       },

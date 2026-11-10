@@ -36,6 +36,8 @@
 - [`event.public_description.set`](#eventpublicdescriptionset)
 - [`event.public_title.set`](#eventpublictitleset)
 - [`event.update`](#eventupdate)
+- [`event.venue.bulk_set`](#eventvenuebulkset)
+- [`event_economics.entry.set`](#eventeconomicsentryset)
 - [`export.generate`](#exportgenerate)
 - [`host.set`](#hostset)
 - [`infrastructure.capacity_schedule`](#infrastructurecapacityschedule)
@@ -684,6 +686,42 @@ A successful action proves only its canonical internal contract unless `post_che
 - Not for: any Event text, ticket-class, or provider-live changes.
 - Payload: `{event_ref,changes:{starts_at RFC3339?,duration_minutes?,location_ref?},expected?}`
 
+### `event.venue.bulk_set`
+
+- Availability: `active`
+- Required role: `employee`
+- Confirmation policy: `required`
+- Domain: `event` (normally omit `domain`; the server derives it)
+- External-effect mode: `internal_only`
+- External-effect kind: `none`
+- Effect claim boundary: Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.
+- Evidence-safe success summary: Canonical internal state applied and independently read back; no external effect is implied.
+- Targets: `event`
+- Required ref fields: `event_refs`, `show_ref`, `from_location_ref`, `to_location_ref`
+- Creates entity: no
+- Existing dependencies: `event`, `show`, `location`
+- Use when: atomically change the venue of an exact frozen set of upcoming, non-cancelled Events from one Show and source Location after one preview and confirmation.
+- Not for: live filters, past/cancelled/closed Events, Show activation, Slot visibility, rescheduling, rebooking, messages or ticket-provider updates.
+- Payload: `{event_refs:1..200 unique exact Event refs,show_ref,from_location_ref,to_location_ref}; all Events must still belong to that Show/source Location, be upcoming and open, and the destination must be active. One atomic transaction preserves Event IDs, times, Slots, applications and Bookings. No automatic Show reactivation or notification delivery is implied.`
+
+### `event_economics.entry.set`
+
+- Availability: `active`
+- Required role: `admin`
+- Confirmation policy: `required`
+- Domain: `finance` (normally omit `domain`; the server derives it)
+- External-effect mode: `internal_only`
+- External-effect kind: `none`
+- Effect claim boundary: Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.
+- Evidence-safe success summary: Canonical internal state applied and independently read back; no external effect is implied.
+- Targets: `event`, `show`
+- Required ref fields: `target_ref`
+- Creates entity: no
+- Existing dependencies: `event`, `show`
+- Use when: set a fixed net EUR income or cost entry in Event Abrechnung for one Comedyflash Event or every past and future Event of one resolved Show; canonical Super-Admin finance access is required.
+- Not for: payments, invoices, payouts, VAT assumptions, provider changes, source-fact replacement, or percentage calculations.
+- Payload: `{target_ref:'sr:event:<id>'|'sr:show:<id>',category:'tickets'|'other_income'|'ticket_fee'|'processor'|'gage'|'travel'|'ksk'|'service'|'venue'|'advertising'|'other',label:string(2..200),amount_minor:integer net EUR cents,source?:string,quality?:'confirmed'|'inferred'|'planned'}. A Show target applies the amount PER EVENT, including newly created events. Same target/category/label updates the existing manual entry; duplicate matches require Web review. Rent uses venue. 400 EUR = 40000 cents. Missing invoices remain open. Prepare displays affected count and before/after; never execute an unconfirmed series-wide change.`
+
 ### `export.generate`
 
 - Availability: `unsupported`
@@ -1050,17 +1088,17 @@ A successful action proves only its canonical internal contract unless `post_che
 - Required role: `employee`
 - Confirmation policy: `required`
 - Domain: `booking` (normally omit `domain`; the server derives it)
-- External-effect mode: `internal_only`
-- External-effect kind: `none`
-- Effect claim boundary: Claim only the canonical internal state change and do not imply any email, notification, provider, file-delivery, calendar, or external-message effect.
-- Evidence-safe success summary: Canonical internal state applied and independently read back; no external effect is implied.
+- External-effect mode: `receipt_required`
+- External-effect kind: `email`
+- Effect claim boundary: An explicit application-requirement change uses the canonical Main App pipeline for affected pending applicants. Only its delivery receipt proves an email stage. Mode-only requests preserve the existing setting and request no email; zero affected applicants means no notification.
+- Evidence-safe success summary: Slot modes and any explicitly requested application requirement applied and read back; pending-application and email outcomes are reported separately from canonical receipts.
 - Targets: `slot`
 - Required ref fields: `slot_refs`
 - Creates entity: no
 - Existing dependencies: `slot`
-- Use when: set private/public mode on a frozen set of slots.
-- Not for: creating slots.
-- Payload: `{slot_refs:[1..200],mode:'private'|'public'}`
+- Use when: set private/public mode on a frozen set of existing slots; optionally require or disable application approval when opening public slots.
+- Not for: creating slots or removing a booked comedian.
+- Payload: `{slot_refs:[1..200],mode:'private'|'public',requires_verification?:boolean}; requires_verification is supported only with mode:'public'. true requires an application to be accepted before booking; false permits direct booking. Omit it to preserve the existing setting. Curation spots keep their canonical fixed mode. Preview the exact slot modes, application requirements and pending-application effects before confirming.`
 
 ### `ticketing.canonical_price.set`
 

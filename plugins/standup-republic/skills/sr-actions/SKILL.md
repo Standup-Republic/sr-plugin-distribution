@@ -104,6 +104,15 @@ When a request produces multiple independent `required` manifests:
 Use one confirmation for several targets only when a supported bulk operation
 or `batch.execute` produced one manifest covering the complete frozen intent.
 
+## Frozen Venue Correction
+
+When connected, use `event.venue.bulk_set` for one exact set of upcoming,
+non-cancelled Events from one Show and source Location to one active destination.
+Use its one required-confirmation preview; preserve Event IDs, times, Slots,
+applications and Bookings. Show activation and Slot visibility are separate.
+Do not substitute a live filter or a loop of independent venue updates when the
+bulk action is unavailable. Business agreement must precede execution.
+
 ## Related-Action Batch
 
 Use `batch.execute` only for 2–50 related active actions that express one
